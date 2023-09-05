@@ -1405,7 +1405,7 @@ def coherence(self, PSD=None, nperseg=None, plot=False):
 
 def BFD(self, PSD, plot=False, mode='interactive', verbose=False):
     """      
-    Basic Frequency Domain Method / Peak Picking Method
+    Basic Frequency Domain Method
 
     Estimate the eigenfrequencies, damping ratios and mode shapes of the 
     spectral matrix.
@@ -1413,6 +1413,9 @@ def BFD(self, PSD, plot=False, mode='interactive', verbose=False):
     Damping is estimated by the half-power bandwitdh method and by fitting the 
     theoretical acceleration response power spectral density of a single-DOF 
     system with random applied force excitation.
+
+    modEMM-ARM: In this modified version, the BFD method is used to provide also a frequency estimation
+    obtained from the fitted curve.
 
     Parameters
     -------       
@@ -1542,16 +1545,17 @@ def BFD(self, PSD, plot=False, mode='interactive', verbose=False):
     #-------------------------------------------------------------------
     def Sy(f,c1,c2,fn,ζ):
 
-        return c1*np.abs(2*np.pi*f**2/(1-(f/fn)**2+2j*ζ*(f/fn)))**2 + c2       
+        return c1*np.abs(((2*np.pi*f)**2)/(1-(f/fn)**2+2j*ζ*(f/fn)))**2 + c2       
     #-------------------------------------------------------------------       
                                                                                         
     ζhp = np.zeros((len(pki)))
     ζft = np.zeros((len(pki)))
+    freq_ft = np.zeros((len(pki)))
     P   = np.zeros((len(pki),4))
     
     idx = np.argmin(np.abs(f-fint.reshape(-1,1)),axis=1)
     
-    if plot['typeForBFD'] != False: #Editted EMM-ARM 22/08/2022
+    if plot['typeForBFD'] != False:
         fig, ax = plt.subplots(1,len(MGi),figsize=(len(MGi)*plot['figSizeBFD'][0], plot['figSizeBFD'][1]),squeeze=False, dpi=plot['dpi']) #Editted EMM-ARM 22/08/2022
 
     for i, (j, k, ii, si) in enumerate(zip(MGi,pki,idx[::2],idx[1::2])):
@@ -1564,17 +1568,22 @@ def BFD(self, PSD, plot=False, mode='interactive', verbose=False):
         ζhp[i] = (fb**2-fa**2)/(4*f[k]**2)    # half-power
         
         Pmin = (0     , 0    , fa, 0.000)     # lower bounds
-        P0   = (0     , 0    , f0, 0.010)     # initial guesses 
+        P0   = (0     , 0    , f0, ζhp[i])     # initial guesses 
         Pmax = (mG/1E2,mG/1E3, fb, 0.05 )     # upper bounds   
         
         P[i,:], _ = curve_fit(Sy,f[ii:si],G[j,ii:si],
-                                         p0=P0,bounds=(Pmin, Pmax))
-        ζft[i] = P[i,3]
+                                         p0=P0,bounds=(Pmin, Pmax), method='dogbox')
+        '''
+        P[i,:], _ = curve_fit(Sy,f[ii:si],G[j,ii:si],
+                                         p0=P0)
+        '''
+        ζft[i] = P[i,3] #curve fit damping
+        freq_ft[i] = P[i,2] #curve fit frequency
     
         if plot['typeForBFD'] != False: #Editted EMM-ARM 22/08/2022:
             ax[0,i].semilogy(f[ii:si],G[j,ii:si])
-            ax[0,i].semilogy(np.linspace(f[ii],f[si],100),
-                         Sy(np.linspace(f[ii],f[si],100),*P[i,:]),'k:') 
+            ax[0,i].semilogy(np.linspace(f[ii],f[si],1000),
+                         Sy(np.linspace(f[ii],f[si],1000),*P[i,:]),'k:') 
             ax[0,i].plot(f0,mG,'rx')
             ax[0,i].plot([fa,fb],[mG/2,mG/2],'ro')
             ax[0,i].annotate('{:.3f} Hz'.format(f0),(f0,G[j,k]*1.05), 
@@ -1584,7 +1593,8 @@ def BFD(self, PSD, plot=False, mode='interactive', verbose=False):
             ax[0,i].annotate('{:.3f} Hz'.format(fb),(fb,  mG/2*1.05), 
                                                                   ha='left',size=0.75*plot['fontSize']) 
             ax[0,i].text(.99, .99, r'$\xi_{{hp}}$ = {:.2f}%'.format(ζhp[i]*100) 
-                +'\n'+ r'$\xi_{{ft}}$ = {:.2f}%'.format(ζft[i]*100), 
+                +'\n'+ r'$\xi_{{ft}}$ = {:.2f}%'.format(ζft[i]*100)
+                +'\n'+ r'$f_{{ft}}$ = {:.3f}%'.format(freq_ft[i]), 
                 horizontalalignment='right',verticalalignment='top', 
                 transform=ax[0,i].transAxes,fontsize=11)
             
