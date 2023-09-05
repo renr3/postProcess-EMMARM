@@ -162,12 +162,12 @@ def SSI_COV(T, no):
     C  = Oi[:l,:]
     
     A  = np.linalg.pinv(Oi[:l*(i-1),:]) @ Oi[l:l*i+1,:]
-    Λd, Ψ = np.linalg.eig(A)
+    Ad, psi = np.linalg.eig(A)
     
-    λ  =  np.log(Λd)*T.fs
-    fn =  np.abs(λ)/(2*np.pi)
-    zt = -np.real(λ)/np.abs(λ)                
-    V  =  C @ Ψ
+    lambdaSymbol  =  np.log(Ad)*T.fs
+    fn =  np.abs(lambdaSymbol)/(2*np.pi)
+    zt = -np.real(lambdaSymbol)/np.abs(lambdaSymbol)                
+    V  =  C @ psi
     
     return fn, zt, V
  
@@ -324,12 +324,12 @@ def SSI_DATA(Pi, Pi1, Yii, no):
     A  = AC[:no,:]
     C  = AC[no:,:]
             
-    Λd, Ψ = np.linalg.eig(A)
+    Ad, psi = np.linalg.eig(A)
     
-    λ  =  np.log(Λd)*Pi.fs
-    fn =  np.abs(λ)/(2*np.pi)
-    zt = -np.real(λ)/np.abs(λ)                
-    V  =  C @ Ψ
+    lambdaSymbol  =  np.log(Ad)*Pi.fs
+    fn =  np.abs(lambdaSymbol)/(2*np.pi)
+    zt = -np.real(lambdaSymbol)/np.abs(lambdaSymbol)                
+    V  =  C @ psi
     
     return fn, zt, V    
 
@@ -488,14 +488,14 @@ def Fast_SSI(yk, i, nmin, nmax, incr=2, plot=False, based='COV'):
         A = np.linalg.inv(R[:no,:no]) @ St[:no,:no]
         Cj = C[:,:no]
     
-        Λd, Ψ = np.linalg.eig(A)
+        Ad, psi = np.linalg.eig(A)
         
-        λ  =  np.log(Λd)*yk.fs
+        lambdaSymbol  =  np.log(Ad)*yk.fs
         
-        FN[ii,:no] =  np.abs(λ)/(2*np.pi)
-        ZT[ii,:no] = -np.real(λ)/np.abs(λ)  
+        FN[ii,:no] =  np.abs(lambdaSymbol)/(2*np.pi)
+        ZT[ii,:no] = -np.real(lambdaSymbol)/np.abs(lambdaSymbol)  
               
-        VV[ii,:,:no]  =  Cj @ Ψ
+        VV[ii,:,:no]  =  Cj @ psi
         
     return FN, ZT, VV
 
@@ -533,27 +533,27 @@ def IV(T, no):
     r = T.r
     l = T.l
     
-    αb = np.linalg.lstsq(T[:,-no*r:], 
+    alfa_b = np.linalg.lstsq(T[:,-no*r:], 
                         -T[:,-(no+1)*r:-no*r], rcond=None)[0]
     
     Apcomp = np.zeros((no*r,no*r))
     Apcomp[:-r,r:] += np.eye((no-1)*r)
     for kk in range(no):
-        Apcomp[-r:,r*kk:r*(kk+1)] -= αb.T[:,r*(no-kk)-r:r*(no-kk)]
+        Apcomp[-r:,r*kk:r*(kk+1)] -= alfa_b.T[:,r*(no-kk)-r:r*(no-kk)]
     
-    Λd, Ψ = np.linalg.eig(Apcomp)
+    Ad, psi = np.linalg.eig(Apcomp)
     
-    λ  =  np.log(Λd)*T.fs
-    fn =  np.abs(λ)/(2*np.pi)
-    zt = -np.real(λ)/np.abs(λ)                
+    lambdaSymbol  =  np.log(Ad)*T.fs
+    fn =  np.abs(lambdaSymbol)/(2*np.pi)
+    zt = -np.real(lambdaSymbol)/np.abs(lambdaSymbol)                
 
-    Gmref = (Ψ[:r,:]).T
-    Γmref = np.zeros((no*r,no*r),dtype=np.complex_)
+    Gmref = (psi[:r,:]).T
+    tau_mref = np.zeros((no*r,no*r),dtype=np.complex_)
     
     for ii in range(no):
-        Γmref[:,ii*r:(ii+1)*r] = np.diag(Λd**(no-ii-1)) @ Gmref
+        tau_mref[:,ii*r:(ii+1)*r] = np.diag(Ad**(no-ii-1)) @ Gmref
         
-    V = T[:l,-no*r:] @ np.linalg.inv(Γmref)
+    V = T[:l,-no*r:] @ np.linalg.inv(tau_mref)
     
     return fn, zt, V
 
@@ -638,7 +638,7 @@ def stabilization_diagram(FN, ZT, VV,
         Columns: percentage tolerance, minimum and maximum values respectively.
         Default is:
         [0.01,0,100 ] Δf = 1%; fmin = 0 Hz; fmax = 100 Hz
-        [0.05,0,0.05] Δζ = 5%; ζmin = 0%;   ζmax = 5%
+        [0.05,0,0.05] Δksi = 5%; ksimin = 0%;   ksimax = 5%
         [0.10,0,1   ] MAC >= (1 - 0.10) = 0.90     
     plot : dictionary, optional #Editted EMM-ARM
         It has the following format:
@@ -1061,14 +1061,14 @@ def SDM(self, nperseg=None, plot={'typeForPSD': 'False', 'frequencyBand': [0, 0]
         t = 0.9          # 1-t == top space 
         b = 0.1          # bottom space      (both in figure coordinates)            
         w = 0.05         # side spacing
-        μ = 0.1          # minor spacing
+        mu = 0.1          # minor spacing
         Μ = 0.2          # major spacing
         
-        spa  = (t-b)/(n*(1+μ+1/H)+(n-1)*Μ)
-        offb = spa*(μ+1/H)
-        offt = spa*(1+μ)
-        hsp1 = Μ+μ+1/H
-        hsp2 = (Μ+μ+1)*H
+        spa  = (t-b)/(n*(1+mu+1/H)+(n-1)*Μ)
+        offb = spa*(mu+1/H)
+        offt = spa*(1+mu)
+        hsp1 = Μ+mu+1/H
+        hsp2 = (Μ+mu+1)*H
         
         gso = GridSpec(n,m, bottom=b+offb, top=t, hspace=hsp1, wspace=w)  
         gse = GridSpec(n,m, bottom=b, top=t-offt, hspace=hsp2, wspace=w)         
@@ -1340,7 +1340,7 @@ def coherence(self, PSD=None, nperseg=None, plot=False):
 
     Returns
     -------   
-    γ : auxclass_like
+    gama : auxclass_like
         Auxclass object that contains the coherence functions and the attribute
         f. 
     
@@ -1354,15 +1354,15 @@ def coherence(self, PSD=None, nperseg=None, plot=False):
         except AttributeError:
             sys.exit('nperseg must be a parameter or a PSD attribute')      
     
-    γ = np.empty((self.NX,self.NX,nperseg//2+1))
+    gama = np.empty((self.NX,self.NX,nperseg//2+1))
     
     for i in range(self.NX):
         for j in range(self.NX):
-            f, γ[i,j] = signal.coherence(self[i,:], self[j,:],
+            f, gama[i,j] = signal.coherence(self[i,:], self[j,:],
                  self.fs, nperseg=nperseg)                     
 
-    γ   = auxclass(np.real(γ))
-    γ.f = f
+    gama   = auxclass(np.real(gama))
+    gama.f = f
             
     if plot:
         
@@ -1377,8 +1377,8 @@ def coherence(self, PSD=None, nperseg=None, plot=False):
         for i in range(NX):
             for j in range(NX):
                 ax = plt.subplot(NX,NX,i*NX+j+1)
-                ax.plot(f,γ[i,j])
-                if PSD != None: ax.plot(f[PSD.pki],γ[i,j][PSD.pki],'ro')
+                ax.plot(f,gama[i,j])
+                if PSD != None: ax.plot(f[PSD.pki],gama[i,j][PSD.pki],'ro')
                 ax.set_title(r'$\gamma^2_{{{:d},{:d}}}$'
                              .format(i+1,j+1),**a_for)
                 ax.set_xlim([0,f[-1]])
@@ -1399,7 +1399,7 @@ def coherence(self, PSD=None, nperseg=None, plot=False):
           
         plt.tight_layout()
     
-    return γ
+    return gama
 
 #-----------------------------------------------------------------------------
 
@@ -1543,13 +1543,13 @@ def BFD(self, PSD, plot=False, mode='interactive', verbose=False):
         sys.exit('mode must be interactive or batch')   
 
     #-------------------------------------------------------------------
-    def Sy(f,c1,c2,fn,ζ):
+    def Sy(f,c1,c2,fn,ksi):
 
-        return c1*np.abs(((2*np.pi*f)**2)/(1-(f/fn)**2+2j*ζ*(f/fn)))**2 + c2       
+        return c1*np.abs(((2*np.pi*f)**2)/(1-(f/fn)**2+2j*ksi*(f/fn)))**2 + c2       
     #-------------------------------------------------------------------       
                                                                                         
-    ζhp = np.zeros((len(pki)))
-    ζft = np.zeros((len(pki)))
+    ksihp = np.zeros((len(pki)))
+    ksift = np.zeros((len(pki)))
     freq_ft = np.zeros((len(pki)))
     P   = np.zeros((len(pki),4))
     
@@ -1565,10 +1565,10 @@ def BFD(self, PSD, plot=False, mode='interactive', verbose=False):
         fb = np.interp(-mG/2,-G[j, k:si ],f[ k:si ])
         f0 = f[k]
         
-        ζhp[i] = (fb**2-fa**2)/(4*f[k]**2)    # half-power
+        ksihp[i] = (fb**2-fa**2)/(4*f[k]**2)    # half-power
         
         Pmin = (0     , 0    , fa, 0.000)     # lower bounds
-        P0   = (0     , 0    , f0, ζhp[i])     # initial guesses 
+        P0   = (0     , 0    , f0, ksihp[i])     # initial guesses 
         Pmax = (mG/1E2,mG/1E3, fb, 0.05 )     # upper bounds   
         
         P[i,:], _ = curve_fit(Sy,f[ii:si],G[j,ii:si],
@@ -1577,7 +1577,7 @@ def BFD(self, PSD, plot=False, mode='interactive', verbose=False):
         P[i,:], _ = curve_fit(Sy,f[ii:si],G[j,ii:si],
                                          p0=P0)
         '''
-        ζft[i] = P[i,3] #curve fit damping
+        ksift[i] = P[i,3] #curve fit damping
         freq_ft[i] = P[i,2] #curve fit frequency
     
         if plot['typeForBFD'] != False: #Editted EMM-ARM 22/08/2022:
@@ -1592,8 +1592,8 @@ def BFD(self, PSD, plot=False, mode='interactive', verbose=False):
                                                                   ha='right',size=0.75*plot['fontSize'])
             ax[0,i].annotate('{:.3f} Hz'.format(fb),(fb,  mG/2*1.05), 
                                                                   ha='left',size=0.75*plot['fontSize']) 
-            ax[0,i].text(.99, .99, r'$\xi_{{hp}}$ = {:.2f}%'.format(ζhp[i]*100) 
-                +'\n'+ r'$\xi_{{ft}}$ = {:.2f}%'.format(ζft[i]*100)
+            ax[0,i].text(.99, .99, r'$\xi_{{hp}}$ = {:.2f}%'.format(ksihp[i]*100) 
+                +'\n'+ r'$\xi_{{ft}}$ = {:.2f}%'.format(ksift[i]*100)
                 +'\n'+ r'$f_{{ft}}$ = {:.3f}%'.format(freq_ft[i]), 
                 horizontalalignment='right',verticalalignment='top', 
                 transform=ax[0,i].transAxes,fontsize=11)
@@ -1618,20 +1618,20 @@ def BFD(self, PSD, plot=False, mode='interactive', verbose=False):
         else:
             for i, j in enumerate(fn): print('#{:d}: {:.3f} Hz'.format(i+1,j)) 
         print("Damping ratios identified with the Half-Power Method:")
-        if ζhp.size == 0:
+        if ksihp.size == 0:
             print('No damping ratios with half-power method could be identified') 
         else:
-            for i, j in enumerate(ζhp): print('#{:d}: {:.3f} %'.format(i+1,100*j))
+            for i, j in enumerate(ksihp): print('#{:d}: {:.3f} %'.format(i+1,100*j))
         print("Damping ratios identified with the Fitting Method:")
-        if ζft.size == 0:
+        if ksift.size == 0:
             print('No damping ratios with fitting method could be identified') 
         else:
-            for i, j in enumerate(ζft): print('#{:d}: {:.3f} %'.format(i+1,100*j)) 
+            for i, j in enumerate(ksift): print('#{:d}: {:.3f} %'.format(i+1,100*j)) 
         #TODO: Implement showing mode shapes
         print("END OF RESULTS FROM BFD METHOD")
         print("=================================================================================")            
     
-    return fn, ζhp, ζft, V.T, PSD
+    return fn, ksihp, ksift, V.T, PSD
    
 #-----------------------------------------------------------------------------
     
@@ -1983,11 +1983,11 @@ def fit_autc(PSD, t, te, R, env, mode='interactive', plot='False', plotScale=1):
     
     def decay(t, Xp, η, fn):
 
-        ωn = 2*np.pi*fn
-        ζ  = η/ωn
-        ωd = ωn * (1-ζ**2)**.5
+        omega_n = 2*np.pi*fn
+        ksi  = η/omega_n
+        omega_d = omega_n * (1-ksi**2)**.5
         
-        return Xp*np.exp(-η*t)*np.cos(ωd*t)
+        return Xp*np.exp(-η*t)*np.cos(omega_d*t)
     
     #--------------------------------------------------
     
@@ -2034,9 +2034,9 @@ def fit_autc(PSD, t, te, R, env, mode='interactive', plot='False', plotScale=1):
     for i, (j, k) in enumerate(zip(idx[::2],idx[1::2])):
 
         X0 =  1.00                   # initial amplitude value  
-        ζ0 =  0.01                   # initial damping value  
+        ksi0 =  0.01                   # initial damping value  
         fn =  PSD.f[PSD.pki[i]]      # initial natural frequency
-        η0 =  2*np.pi*fn*ζ0              
+        η0 =  2*np.pi*fn*ksi0              
         
         Pmin = (1.00*X0, 0*η0)       # lower bounds
         P0   = (     X0,   η0)       # initial guesses
@@ -2089,14 +2089,14 @@ def fit_autc(PSD, t, te, R, env, mode='interactive', plot='False', plotScale=1):
 # Other functions: MAC and mode shapes graph
 #=============================================================================  
     
-def MAC(Ψi, Ψj, plot=False):
+def MAC(psii, psij, plot=False):
     """
-    Compute the Modal Assurance Criterion [2] from the columns of the  Ψi and 
-    Ψj matrices.
+    Compute the Modal Assurance Criterion [2] from the columns of the  psii and 
+    psij matrices.
     
     Parameters
     -------     
-    Ψi, Ψj : array_like
+    psii, psij : array_like
         2D array that contains the mode shapes as columns.
     plot : bool, optional
         If true, plots the MACs graph. Default is false.        
@@ -2112,9 +2112,9 @@ def MAC(Ψi, Ψj, plot=False):
            Conference, p. 110-116, 1982.
     """
     
-    MOMij =         Ψi.T @ np.conj(Ψj)
-    MOMii = np.diag(Ψi.T @ np.conj(Ψi))
-    MOMjj = np.diag(Ψj.T @ np.conj(Ψj))
+    MOMij =         psii.T @ np.conj(psij)
+    MOMii = np.diag(psii.T @ np.conj(psii))
+    MOMjj = np.diag(psij.T @ np.conj(psij))
     
     MAC   = np.abs(MOMij)**2 / np.outer(MOMii,MOMjj)
     

@@ -475,13 +475,13 @@ def solveCantileverTranscendentalEquation(initialGuess, vibrationFrequency, line
     """ 
 
     #Compute the natural frequency in rad/s and store important variables in easy-to-read codes
-    ω = 2*np.pi*vibrationFrequency
+    w = 2*np.pi*vibrationFrequency
     L = freeLength
     mL = linearMass
     mT = tipMass
 
     #Define the transcendental function structure
-    f = lambda EI: ((((ω**2)*mL/EI)**(1/4))**3)*(np.cosh((((ω**2)*mL/EI)**(1/4))*L)*np.cos((((ω**2)*mL/EI)**(1/4))*L)+1)+(ω*ω*mT/EI)*(np.cos((((ω**2)*mL/EI)**(1/4))*L)*np.sinh((((ω**2)*mL/EI)**(1/4))*L)-np.cosh((((ω**2)*mL/EI)**(1/4))*L)*np.sin((((ω**2)*mL/EI)**(1/4))*L))
+    f = lambda EI: ((((w**2)*mL/EI)**(1/4))**3)*(np.cosh((((w**2)*mL/EI)**(1/4))*L)*np.cos((((w**2)*mL/EI)**(1/4))*L)+1)+(w*w*mT/EI)*(np.cos((((w**2)*mL/EI)**(1/4))*L)*np.sinh((((w**2)*mL/EI)**(1/4))*L)-np.cosh((((w**2)*mL/EI)**(1/4))*L)*np.sin((((w**2)*mL/EI)**(1/4))*L))
 
     #Solve the transcendental equation
     flexuralStiffness = fsolve(f, initialGuess)
