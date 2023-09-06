@@ -380,6 +380,7 @@ def plotAccelerationTimeSeries(accelerationData, plot={'fontSize': 15, 'fontName
     plt.xlabel("Time (s)", size=plot['fontSize'], fontname=plot['fontName'])
     plt.ylabel("Acceleration (g)", size=plot['fontSize'], fontname=plot['fontName'])
     plt.legend()
+    plt.tight_layout()
     plt.show()
 
 def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot=False, verbose=False):
@@ -465,8 +466,9 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot=False, verbose
         indexLowerAxis = (np.abs(PSD.f - (PSD.f[indexLowerAvgingBoundary]*.50))).argmin()
         indexHigherAxis = (np.abs(PSD.f - (PSD.f[indexHigherAvgingBoundary]*1.50))).argmin()
         ax.set_xlim([PSD.f[indexLowerAxis], PSD.f[indexHigherAxis]])
-        ax.set_ylim([0.80*np.min([float((PSD)[0][0][indexLowerAxis]),float(abs(PSD)[0][0][indexHigherAxis])]),abs(PSD)[0][0][yMaxPeakIndex]*1.2])
+        ax.set_ylim([0.80*np.min([float(abs(PSD)[0][0][indexLowerAxis]),float(abs(PSD)[0][0][indexHigherAxis])]),abs(PSD)[0][0][yMaxPeakIndex]*1.2])
         plt.legend()
+        plt.tight_layout()
 
     if verbose == True:
         print("=================================================================================")
