@@ -448,6 +448,12 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot=False, verbose
     PSDAveragedPeakIndex = (np.abs(PSD.f - averagedFrequency)).argmin()
     PSDAveragedFrequency = PSD.f[PSDAveragedPeakIndex]
 
+    #Half-power bandwidth method
+    peakPSD=abs(PSD)[0][0][PSDAveragedPeakIndex]
+    fa = np.interp( peakPSD/2, abs(PSD)[0][0][:PSDAveragedPeakIndex+1],PSD.f[:PSDAveragedPeakIndex+1])
+    fb = np.interp(-peakPSD/2,-abs(PSD)[0][0][PSDAveragedPeakIndex:],PSD.f[PSDAveragedPeakIndex:])
+    ksi_hp = (fb**2-fa**2)/(4*PSD.f[PSDAveragedPeakIndex]**2)    # half-power bandwidth damping
+
     if plot['typeForPeakPicking'] != False: #Editted EMM-ARM 22/08/2022: 
         fig, ax = plt.subplots(1,1,figsize=plot['figSizePeakPicking'], dpi=plot['dpi'])
         ax.semilogy(PSD.f,abs(PSD)[0][0], label="PSD")
@@ -470,11 +476,13 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot=False, verbose
         print("Considering an interval around *reference* peak of {:.3f} Hz.".format(intervalForAveragingInHz))
         print("Averaged peak-picking estimated frequency:")
         print("{:.3f} Hz".format(averagedFrequency[0][0]))
+        print("Half-power bandwidth damping:")
+        print("{:.3f} %".format(100*ksi_hp))
         print("END OF RESULTS FROM AVERAGED PEAK-PICKING METHOD")
         print("=================================================================================")
 
     #return PSDaveragedPeakIndex, averagedFrequency, yMaxPeakIndex
-    return averagedFrequency, PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex
+    return averagedFrequency, ksi_hp, PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex
 
 def solveCantileverTranscendentalEquation(initialGuess, vibrationFrequency, linearMass, freeLength, tipMass):
     """
