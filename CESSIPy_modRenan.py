@@ -1541,49 +1541,64 @@ def BFD(self, PSD, plot=False, mode='interactive', verbose=False):
     
     else:
         sys.exit('mode must be interactive or batch')   
-
+    '''
     #-------------------------------------------------------------------
-    def Sy(f,c1,c2,fn,ksi):
-
-        return c1*np.abs(((2*np.pi*f)**2)/(1-(f/fn)**2+2j*ksi*(f/fn)))**2 + c2       
+    def Sy(f,c1,fn,ksi):
+        #Original implementation (with removal of c2 constant) of CESSI.py
+        return c1*np.abs(((2*np.pi*f)**2)/(1-(f/fn)**2+2j*ksi*(f/fn)))**2       
+    #------------------------------------------------------------------- 
+    '''      
+    '''
+    #-------------------------------------------------------------------
+    def Sy(f,c1,fn,ksi):
+        #Brownjohn: autopower spectra from paper "Ambient vibration survet of the Bosporus suspension bridge"
+        return c1*np.abs(((2*np.pi*f)**2)/((1-(f/fn)**2)**2+(2*ksi*(f/fn))**2)**0.5)     
     #-------------------------------------------------------------------       
-                                                                                        
-    ksihp = np.zeros((len(pki)))
-    ksift = np.zeros((len(pki)))
+    '''                 
+    #-------------------------------------------------------------------
+    def Sy(f,c1,fn,ksi):
+        #Clough's "Dynamic of Structures", 3rd edition, Eq. 22-21
+        return c1*np.array(1/(1+(4*ksi*ksi-2)*(f/fn)**2+(f/fn)**4))      
+    #-------------------------------------------------------------------                                                       
+    ksi_hp = np.zeros((len(pki)))
+    ksi_ft = np.zeros((len(pki)))
     freq_ft = np.zeros((len(pki)))
-    P   = np.zeros((len(pki),4))
-    
+    #P   = np.zeros((len(pki),4))
+    P   = np.zeros((len(pki),3))
     idx = np.argmin(np.abs(f-fint.reshape(-1,1)),axis=1)
     
     if plot['typeForBFD'] != False:
         fig, ax = plt.subplots(1,len(MGi),figsize=(len(MGi)*plot['figSizeBFD'][0], plot['figSizeBFD'][1]),squeeze=False, dpi=plot['dpi']) #Editted EMM-ARM 22/08/2022
 
     for i, (j, k, ii, si) in enumerate(zip(MGi,pki,idx[::2],idx[1::2])):
-        
+        normFactor = 1 #make normFactor=max(G[j,ii:si]) if you want the fitting to be performed over a normalized PSD
         mG = G[j,k]
         fa = np.interp( mG/2, G[j,ii:k+1],f[ii:k+1])
         fb = np.interp(-mG/2,-G[j, k:si ],f[ k:si ])
         f0 = f[k]
         
-        ksihp[i] = (fb**2-fa**2)/(4*f[k]**2)    # half-power
+        ksi_hp[i] = (fb**2-fa**2)/(4*f[k]**2)    # half-power
         
-        Pmin = (0     , 0    , fa, 0.000)     # lower bounds
-        P0   = (0     , 0    , f0, ksihp[i])     # initial guesses 
-        Pmax = (mG/1E2,mG/1E3, fb, 0.05 )     # upper bounds   
-        
-        P[i,:], _ = curve_fit(Sy,f[ii:si],G[j,ii:si],
+        Pmin = (0     , fa, 0.000)     # lower bounds
+        #P0   = (0     , 0    , f0, 0.01)     # initial guesses 
+        P0   = (10*min(G[j,ii]/normFactor,G[j,si]/normFactor), f0, 0.01)     # initial guesses 
+        #Pmax = (mG/1E2,mG/1E3, fb, 0.05 )     # upper bounds   
+        Pmax = (10*min(G[j,ii]/normFactor,G[j,si]/normFactor), fb, 0.05 )     # upper bounds   
+        '''
+        #Optional ways to do the fitting, by applyng bounds. This makes fitting more dependent on guesses and selection of bounds
+        P[i,:], _ = curve_fit(Sy,f[ii:si],G[j,ii:si]/normFactor),
                                          p0=P0,bounds=(Pmin, Pmax), method='dogbox')
+        P[i,:], _ = curve_fit(Sy,f[ii:si],G[j,ii:si]/normFactor,
+                                         p0=P0,bounds=(Pmin, Pmax))
         '''
-        P[i,:], _ = curve_fit(Sy,f[ii:si],G[j,ii:si],
+        P[i,:], _ = curve_fit(Sy,f[ii:si],G[j,ii:si]/normFactor,
                                          p0=P0)
-        '''
-        ksift[i] = P[i,3] #curve fit damping
-        freq_ft[i] = P[i,2] #curve fit frequency
-    
+        ksi_ft[i] = P[i,2] #curve fit damping
+        freq_ft[i] = P[i,1] #curve fit frequency
         if plot['typeForBFD'] != False: #Editted EMM-ARM 22/08/2022:
             ax[0,i].semilogy(f[ii:si],G[j,ii:si])
             ax[0,i].semilogy(np.linspace(f[ii],f[si],1000),
-                         Sy(np.linspace(f[ii],f[si],1000),*P[i,:]),'k:') 
+                         Sy(np.linspace(f[ii],f[si],1000),*P[i,:])*normFactor,'k:') 
             ax[0,i].plot(f0,mG,'rx')
             ax[0,i].plot([fa,fb],[mG/2,mG/2],'ro')
             ax[0,i].annotate('{:.3f} Hz'.format(f0),(f0,G[j,k]*1.05), 
@@ -1592,9 +1607,9 @@ def BFD(self, PSD, plot=False, mode='interactive', verbose=False):
                                                                   ha='right',size=0.75*plot['fontSize'])
             ax[0,i].annotate('{:.3f} Hz'.format(fb),(fb,  mG/2*1.05), 
                                                                   ha='left',size=0.75*plot['fontSize']) 
-            ax[0,i].text(.99, .99, r'$\xi_{{hp}}$ = {:.2f}%'.format(ksihp[i]*100) 
-                +'\n'+ r'$\xi_{{ft}}$ = {:.2f}%'.format(ksift[i]*100)
-                +'\n'+ r'$f_{{ft}}$ = {:.3f}%'.format(freq_ft[i]), 
+            ax[0,i].text(.99, .99, r'$\xi_{{hp}}$ = {:.2f}%'.format(ksi_hp[i]*100) 
+                +'\n'+ r'$\xi_{{ft}}$ = {:.2f}%'.format(ksi_ft[i]*100)
+                +'\n'+ r'$f_{{ft}}$ = {:.3f}Hz'.format(freq_ft[i]), 
                 horizontalalignment='right',verticalalignment='top', 
                 transform=ax[0,i].transAxes,fontsize=11)
             
@@ -1618,20 +1633,20 @@ def BFD(self, PSD, plot=False, mode='interactive', verbose=False):
         else:
             for i, j in enumerate(fn): print('#{:d}: {:.3f} Hz'.format(i+1,j)) 
         print("Damping ratios identified with the Half-Power Method:")
-        if ksihp.size == 0:
+        if ksi_hp.size == 0:
             print('No damping ratios with half-power method could be identified') 
         else:
-            for i, j in enumerate(ksihp): print('#{:d}: {:.3f} %'.format(i+1,100*j))
+            for i, j in enumerate(ksi_hp): print('#{:d}: {:.3f} %'.format(i+1,100*j))
         print("Damping ratios identified with the Fitting Method:")
-        if ksift.size == 0:
+        if ksi_ft.size == 0:
             print('No damping ratios with fitting method could be identified') 
         else:
-            for i, j in enumerate(ksift): print('#{:d}: {:.3f} %'.format(i+1,100*j)) 
+            for i, j in enumerate(ksi_ft): print('#{:d}: {:.3f} %'.format(i+1,100*j)) 
         #TODO: Implement showing mode shapes
         print("END OF RESULTS FROM BFD METHOD")
         print("=================================================================================")            
     
-    return fn, ksihp, ksift, V.T, PSD
+    return fn, ksi_hp, ksi_ft, V.T, PSD
    
 #-----------------------------------------------------------------------------
     

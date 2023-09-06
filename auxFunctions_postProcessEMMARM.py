@@ -382,7 +382,7 @@ def plotAccelerationTimeSeries(accelerationData, plot={'fontSize': 15, 'fontName
     plt.legend()
     plt.show()
 
-def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, verbose=False):
+def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot=False, verbose=False):
     #TODO: Implement allowing identification of more than 1 peak
     """
     This method adapts a "crude" version of the peak-picking method for frequency identification by considering a pondering averaged with the PSD intensities around the PSD peak.
@@ -398,6 +398,17 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, verbose=False):
         Auxclass object that contains the attributes f and pki.
     intervalForAveragingHz: float
         Defines the value, in Hz, at each side of the peak, used to average and find the natural frequency
+    plot : dictionary, optional #Editted EMM-ARM
+        It has the following format:
+            plot={'typeForPeakPicking': 'False', 'fontSize': 15, 'fontName':'Times New Roman', 'figSizePeakPicking': (5,2), 'dpi': 150}
+        The peak(s) will always be plotted together with the curve
+        In which:
+            'typeForPeakPicking' is bool, which may assume the following values:
+                If True, plot results
+                If False, don't plot anything
+            'fontSize' is a scalar and specifies the base font size of the plot
+            'fontName' is a str and specifies the font type of the plot
+            'figSize' is a tuple (width, height) and specifies the 
     verbose: bool, optional.
         Defines if verbose mode is on, so to print the results of the identification metho
 
@@ -436,6 +447,20 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, verbose=False):
     #Find the closest index to averagedFrequency
     PSDAveragedPeakIndex = (np.abs(PSD.f - averagedFrequency)).argmin()
     PSDAveragedFrequency = PSD.f[PSDAveragedPeakIndex]
+
+    if plot['typeForPeakPicking'] != False: #Editted EMM-ARM 22/08/2022: 
+        fig, ax = plt.subplots(1,1,figsize=plot['figSizePeakPicking'], dpi=plot['dpi'])
+        ax.semilogy(PSD.f,abs(PSD)[0][0], label="PSD")
+        ax.semilogy(PSD.f[rangeOfInterest],abs(PSD)[0][0][rangeOfInterest], label="Averaging range")
+        ax.scatter(PSD.f[PSDAveragedPeakIndex], abs(PSD)[0][0][PSDAveragedPeakIndex], label="Selected frequency")
+        ax.set_ylabel('Amplitude (g²/Hz)', size=plot['fontSize'], fontname=plot['fontName'])
+        ax.set_xlabel('Frequency (Hz)', size=plot['fontSize'], fontname=plot['fontName'])
+        #Define axis limits
+        indexLowerAxis = (np.abs(PSD.f - (PSD.f[indexLowerAvgingBoundary]*.50))).argmin()
+        indexHigherAxis = (np.abs(PSD.f - (PSD.f[indexHigherAvgingBoundary]*1.50))).argmin()
+        ax.set_xlim([PSD.f[indexLowerAxis], PSD.f[indexHigherAxis]])
+        ax.set_ylim([0.80*np.min([float((PSD)[0][0][indexLowerAxis]),float(abs(PSD)[0][0][indexHigherAxis])]),abs(PSD)[0][0][yMaxPeakIndex]*1.2])
+        plt.legend()
 
     if verbose == True:
         print("=================================================================================")
