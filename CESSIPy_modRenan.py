@@ -24,9 +24,13 @@ from scipy               import signal
 from scipy.optimize      import curve_fit
 from matplotlib.gridspec import GridSpec
 
+from matplotlib.ticker import MultipleLocator
+
 plt.rcParams["font.family"] = "Times New Roman"
 mpl.rcParams['mathtext.fontset'] = 'cm'
 
+#These two variables aid in the standardization of any plots containing PSD
+#This is not meant to be adjusted by the user, however
 #=============================================================================
 # Naked Class
 #=============================================================================
@@ -602,7 +606,7 @@ def stabilization_diagram(FN, ZT, VV,
                          tol = np.array(([0.01,0, 100],
                                          [0.05,0,0.05],
                                          [0.10,0,   1])), 
-                         plot={'typeForStabilizationDiagram': 'False', 'fontSize': 15, 'fontName':'Times New Roman', 'figSizeStabilization': (5,2), 'dpi': 150}, 
+                         plot={'typeForStabilizationDiagram': False, 'fontSize': 15, 'fontName':'Times New Roman', 'figSizeStabilization': (5,2), 'dpi': 150, 'lowerYFactorPlotPSD': 0.8, 'upperYFactorPlotPSD': 1.2 }, 
                          PSD = None, verbose=False):
     """
     Compute the stable poles and plot the stabilization diagram
@@ -621,17 +625,6 @@ def stabilization_diagram(FN, ZT, VV,
         [0.05,0,0.05] Δksi = 5%; ksimin = 0%;   ksimax = 5%
         [0.10,0,1   ] MAC >= (1 - 0.10) = 0.90     
     plot : dictionary, optional #Editted EMM-ARM
-        It has the following format:
-            plot={'typeForStabilizationDiagram': 'False', 'fontSize': 15, 'fontName':'Times New Roman', 'figSizeStabilization': (5,2), 'dpi': 150}
-        In which:
-            'typeForStabilizationDiagram' is str, which may assume the following values:
-                If 'StabilizationOnly', plot only the stabilization diagram
-                If 'StabilizationPSD', plot the PSD beneath the stabilization diagram
-                If 'False', don't plot anything
-            'fontSize' is a scalar and specifies the base font size of the plot
-            'fontName' is a str and specifies the font type of the plot
-            'figSizeStabilization' is a tuple (width, height) and specifies the size of the figure
-            'dpi' is a scalar and specifies the DPI of the figure    
     PSD: a PSD object that is returned by .SDM function, optional. Only mandatory when 'typeForStabilizationDiagram'='StabilizationPSD'.
     verbose: bool, optional
         If true, intermediate messages are plotted in this function, to better track what is happening.
@@ -709,7 +702,10 @@ def stabilization_diagram(FN, ZT, VV,
     ticksText = {'fontname':plot['fontName'],'size':plot['fontSize']-2}
     legendText = {'family'  :plot['fontName'],'size':plot['fontSize']-2}    
 
-    if plot['typeForStabilizationDiagram']=='StabilizationOnly':  
+    if plot['typeForStabilizationDiagram'] is False:
+        #Do nothing
+        pass
+    elif plot['typeForStabilizationDiagram']=='StabilizationOnly':  
         #Plot stabilization diagram
         plt.figure(figsize=plot['figSizeStabilization'], dpi=plot['dpi']); 
         for ii in range(n.shape[0]): 
@@ -737,6 +733,10 @@ def stabilization_diagram(FN, ZT, VV,
                    "Stable frequency and damping",
                    "Stable frequency, damping and mode shape"], 
                    loc='lower right', prop=legendText)
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        axTemp.xaxis.set_minor_locator(MultipleLocator(1))
+        axTemp.set_axisbelow(True)
         plt.tight_layout(rect=[0, 0, 1, 0.97])
 
     elif plot['typeForStabilizationDiagram']=='StabilizationPSD':          
@@ -745,19 +745,12 @@ def stabilization_diagram(FN, ZT, VV,
 
         #Plot first the PSD using the secondary axis     
         ax_right = ax_left.twinx()       
-        psdLine = ax_right.semilogy(PSD.f[1:],np.abs(PSD[0, 0, 1:]),color="gray",label = "Power spectral density")
-        #Take care of y-axis limit of the secondary axis
-        if (plot['ylimForPSD'][0] != None) or (plot['ylimForPSD'][1] != None): #If some limit was specified
-            if (plot['ylimForPSD'][0] != None) and (plot['ylimForPSD'][0] != None): 
-                #Both were specified
-                ax_right.set_ylim([plot['ylimForPSD'][0],plot['ylimForPSD'][1]])
-            elif (plot['ylimForPSD'][0] != None):
-                #Only the lower bound was specified
-                ax_right.set_ylim([plot['ylimForPSD'][0],max(np.abs(G[0, 0, 1:]))])
-            else:
-                #Only the upper bound was specified
-                ax_right.set_ylim(min(np.abs(G[0, 0, 1:])),plot['ylimForPSD'][1])
+        psdLine = ax_right.semilogy(PSD.f[1:],np.abs(PSD[0, 0, 1:]),color="gray",label = "Power spectral\ndensity")
         plt.sca(ax_right)
+        #Take care of y-axis limit of the secondary axis
+        inferiorIndex, ignoreThis = find_nearest(PSD.f[1:], tol[0,1])
+        superiorIndex, ignoreThis = find_nearest(PSD.f[1:], tol[0,2])
+        plt.ylim((plot['lowerYFactorPlotPSD']*min(np.abs(PSD[0, 0, inferiorIndex]),np.abs(PSD[0, 0, superiorIndex])),plot['upperYFactorPlotPSD']*max(np.abs(PSD[0, 0, :]))))
         plt.ylabel('Amplitude (g²/Hz)',**axisTitleText)     
         plt.xlim((0,tol[0,2]))
         plt.yticks(**ticksText)
@@ -773,9 +766,9 @@ def stabilization_diagram(FN, ZT, VV,
                 go = ax_left.scatter(FN[ii,:n[ii]][stbf[ii,:n[ii]]],
                                 yi[stbf[ii,:n[ii]]],s=4,c='g',label = "Stable frequency")
                 bo = ax_left.scatter(FN[ii,:n[ii]][stbz[ii,:n[ii]]],
-                                yi[stbz[ii,:n[ii]]],s=4,c='b',label = "Stable frequency and damping")
+                                yi[stbz[ii,:n[ii]]],s=4,c='b',label = "Stable frequency\nand damping")
                 ro = ax_left.scatter(FN[ii,:n[ii]][stb [ii,:n[ii]]],
-                                yi[stb [ii,:n[ii]]],s=8,c='r',label = "Stable frequency, damping and mode shape")
+                                yi[stb [ii,:n[ii]]],s=8,c='r',label = "Stable frequency,\ndamping, and\nmode shape")
             else:
                 yi = n[ii]*np.ones(n[ii])  
                 ko = ax_left.scatter(FN[ii,:n[ii]],yi,s=2,c='k')
@@ -791,9 +784,13 @@ def stabilization_diagram(FN, ZT, VV,
         plt.sca(ax_left)
         plt.xticks(**ticksText)
         plt.yticks(n,**ticksText)
-        plt.xlabel('f (Hz)',**axisTitleText)
+        plt.xlabel('Frequency (Hz)',**axisTitleText)
         plt.ylabel('Model Order',**axisTitleText)
-        fig.legend(loc='lower right', prop=legendText, bbox_to_anchor=(1,0), bbox_transform=ax_left.transAxes)
+        fig.legend(loc='lower right', prop=legendText, bbox_to_anchor=(1,0), bbox_transform=ax_left.transAxes, framealpha=1)
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        axTemp.xaxis.set_minor_locator(MultipleLocator(5))
+        axTemp.set_axisbelow(True)
         plt.tight_layout(rect=[0, 0, 1, 0.97])
         plt.suptitle(' Stabilization Diagram',**titleText)
 
@@ -949,6 +946,9 @@ def plot_singular_values(T, figsize=(14, 4), nmx=40):
         ax[i].set_xlim((0,nmx))
         ax[i].set_xlabel(label[i], **l_for)
 
+    axTemp = plt. gca() 
+    axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+    axTemp.xaxis.set_minor_locator(MultipleLocator(5))
     fig.tight_layout(rect=[0, 0, 1, 0.97])
     
     return
@@ -957,7 +957,7 @@ def plot_singular_values(T, figsize=(14, 4), nmx=40):
 # Frequency-Domain
 #=============================================================================  
     
-def SDM(self, nperseg=None, plot={'typeForPSD': False, 'frequencyBand': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}, window='hann', nfft=None, 
+def SDM(self, nperseg=None, plot={'typeForPSD': False, 'frequencyBandOfInterest': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150, 'lowerYFactorPlotPSD': 0.8, 'upperYFactorPlotPSD': 1.2}, window='hann', nfft=None, 
         ):
     """      
     Estimate the spectral density matrix.
@@ -979,7 +979,7 @@ def SDM(self, nperseg=None, plot={'typeForPSD': False, 'frequencyBand': [0, 0], 
                 If 'PSD+phase', plot both PSD and phase angle frequency spectral estimates. Adapted to multiple outputs, which produces multiple cross PSDs
                 If 'Single_PSD', plot only PSD frequency spectral estimates. Proper when single output is available, producing a single autoPSD
                 If 'False', don't plot anything
-            'frequencyBand' is a list specifying the frequency band to be used when ploting, i.e., the frequency limits of the x axis of the PSD
+            'frequencyBandOfInterest' is a list specifying the frequency band to be used when ploting, i.e., the frequency limits of the x axis of the PSD
             'ylimForPSD' is a list specifying the lower limit and the upper limit for the y-axis scale. If some limit is specified as 'None', the default value based on the series data will be used
             'fontSize' is a scalar and specifies the base font size of the plot
             'fontName' is a str and specifies the font type of the plot
@@ -1022,15 +1022,19 @@ def SDM(self, nperseg=None, plot={'typeForPSD': False, 'frequencyBand': [0, 0], 
         #Do nothing
         pass
     elif plot['typeForPSD']=='PSD+phase':
-
+        #This allows plotting PSD plus phase, which is only meaningful if you have multiple accelerometers
+        #In the current version, this option is deactivated because it only supports 1 accelerometer
+        #TODO: provide support for multiple accelerometers and accept this representation
+        pass
+        '''
         l_for = {'fontname':plot['fontName'],'size':plot['fontSize']}        
         
-        if plot['frequencyBand'][1]==0: 
+        if plot['frequencyBandOfInterest'][1]==0: 
             #This means no frequency limits were set, so the default setting of using the maximum possible frequency is used
             axis_f = [0, f[-1]]
         else:
             #The frequency limits have been informed by the user
-            axis_f = [plot['frequencyBand'][0],plot['frequencyBand'][1]]
+            axis_f = [plot['frequencyBandOfInterest'][0],plot['frequencyBandOfInterest'][1]]
         
         #axis_G = [10**7*np.min(np.abs(G[:,:,1:])),1.2*np.max(np.abs(G))]
         
@@ -1088,36 +1092,33 @@ def SDM(self, nperseg=None, plot={'typeForPSD': False, 'frequencyBand': [0, 0], 
             ax1.tick_params(labelsize=plot['fontSize'])
             ax2.tick_params(labelsize=plot['fontSize'])
 
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        axTemp.xaxis.set_minor_locator(MultipleLocator(5))
         plt.tight_layout()    
         plt.show()
+        '''
     elif plot['typeForPSD']=='Single_PSD': #Editted by EMM-ARM (19/08/2022)      
         
-        if plot['frequencyBand'][1]==0: 
+        if plot['frequencyBandOfInterest'][1]==0: 
             #This means no frequency limits were set, so the default setting of using the maximum possible frequency is used
             axis_f = [0, f[-1]]
         else:
             #The frequency limits have been informed by the user
-            axis_f = [plot['frequencyBand'][0],plot['frequencyBand'][1]]
+            axis_f = [plot['frequencyBandOfInterest'][0],plot['frequencyBandOfInterest'][1]]
             
         fig = plt.figure(figsize=plot['figSize'], dpi=plot['dpi'])
         plt.semilogy(f[1:],np.abs(G[0, 0, 1:]))
         plt.xlim(axis_f)
-
-        #Take care of y-axis limit
-        if (plot['ylimForPSD'][0] != None) or (plot['ylimForPSD'][1] != None): #If some limit was specified
-            if (plot['ylimForPSD'][0] != None) and (plot['ylimForPSD'][0] != None): 
-                #Both were specified
-                plt.ylim([plot['ylimForPSD'][0],plot['ylimForPSD'][1]])
-            elif (plot['ylimForPSD'][0] != None):
-                #Only the lower bound was specified
-                plt.ylim([plot['ylimForPSD'][0],max(np.abs(G[0, 0, 1:]))])
-            else:
-                #Only the upper bound was specified
-                plt.ylim(min(np.abs(G[0, 0, 1:])),plot['ylimForPSD'][1])
-
+        #Take care of y-axis limit of the secondary axis
+        inferiorIndex, ignoreThis = find_nearest(f[1:], axis_f[0])
+        superiorIndex, ignoreThis = find_nearest(f[1:], axis_f[1])
+        plt.ylim((plot['lowerYFactorPlotPSD']*min(np.abs(G[0, 0, inferiorIndex]),np.abs(G[0, 0, superiorIndex])),plot['upperYFactorPlotPSD']*max(np.abs(G[0, 0, :]))))
         plt.xlabel('f (Hz)',size=plot['fontSize'], fontname=plot['fontName'])
         plt.ylabel('Amplitude (g²/Hz)',size=plot['fontSize'], fontname=plot['fontName'])            
-        
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        axTemp.xaxis.set_minor_locator(MultipleLocator(5))
         plt.tight_layout()    
         plt.show()
      
@@ -1126,7 +1127,7 @@ def SDM(self, nperseg=None, plot={'typeForPSD': False, 'frequencyBand': [0, 0], 
         
     return PSD
 
-def ANPSD_from_SDM(PSD, plot={'typeForANPSD': False, 'frequencyBand': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}, mode='interactive'):
+def ANPSD_from_SDM(PSD, plot={'typeForANPSD': False, 'frequencyBandOfInterest': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150, 'lowerYFactorPlotPSD': 0.8, 'upperYFactorPlotPSD': 1.2}, mode='interactive'):
     """      
     Compute the Averaged Normalized Power Spectral Density from the spectral
     density matrix.
@@ -1136,19 +1137,6 @@ def ANPSD_from_SDM(PSD, plot={'typeForANPSD': False, 'frequencyBand': [0, 0], 'f
     PSD : auxclass_like
         Auxclass object returned by the SDM function.
     plot : dictionary, optional #Editted EMM-ARM
-        It has the following format:
-            plot={'typeForEFDD': 'False', 'ylimForEFDD': [None,1.1], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}
-        The peak(s) will always be plotted together with the curve
-        In which:
-            'typeForEFDD' is str, which may assume the following values:
-                If 'All', plot all normalized NPSD and the average NPSD, if there are more than one DOF in the acceleration time series
-                If 'only_ANPSD', plot only the average NPSD
-                If 'False', don't plot anything
-            'ylimForEFDD' is a list specifying the lower limit and the upper limit for the y-axis scale. If some limit is specified as 'None', the default value based on the series data will be used
-            'fontSize' is a scalar and specifies the base font size of the plot
-            'fontName' is a str and specifies the font type of the plot
-            'figSize' is a tuple (width, height) and specifies the size of the figure
-            'dpi' is a scalar and specifies the DPI of the figure
     mode : string, optional
         Mode of the peak selection. If 'interactive', the user should select  
         the peaks with the mouse. If 'batch', the peaks must be informed in
@@ -1219,7 +1207,9 @@ def ANPSD_from_SDM(PSD, plot={'typeForANPSD': False, 'frequencyBand': [0, 0], 'f
                  'Peaking: left button\n'
                  'Undo: right button\n'
                  'Finalize: middle button',transform=plt.gca().transAxes)
-
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        axTemp.xaxis.set_minor_locator(MultipleLocator(1))
         plt.tight_layout(rect=[0, 0.03, 1, 0.97])
         
         pnt = np.array(plt.ginput(n=-1,timeout=0))
@@ -1228,13 +1218,10 @@ def ANPSD_from_SDM(PSD, plot={'typeForANPSD': False, 'frequencyBand': [0, 0], 'f
             fn[ii]  =  f[np.argmin((f-pnt[ii,0])**2+1E4*(ANPSD-pnt[ii,1])**2)]
         pki = np.argmin(np.abs(f-fn.reshape(-1,1)),axis=1)    
         
-        plt.close()
-                    
-    elif mode.lower() == 'batch':
-        
+        plt.close()                
+    elif mode.lower() == 'batch':     
         try:
-            pki = PSD.pki
-            
+            pki = PSD.pki    
         except AttributeError:
             sys.exit('PSD must have pki attribute in batch mode')
                     
@@ -1245,6 +1232,13 @@ def ANPSD_from_SDM(PSD, plot={'typeForANPSD': False, 'frequencyBand': [0, 0], 'f
         #Do nothing
         pass
     elif plot['typeForANPSD']=='All': #Editted EMM-ARM 22/08/2022
+        #This allows plotting all NPSD if multiple accelerometers are used
+        #Then, ANSPD is the average of all of them
+        #In the current version, this option is deactivated because it only supports 1 accelerometer
+        #TODO: provide support for multiple accelerometers and accept this representation
+        #TODO: set ylim accordingly
+        pass
+        '''
         fig, ax = plt.subplots(2, 1,figsize=plot['figSizeANPSD'], dpi=plot['dpi']) 
         ax[0].set_title('NPSD')
         for ii, row in enumerate(NPSD):
@@ -1266,43 +1260,34 @@ def ANPSD_from_SDM(PSD, plot={'typeForANPSD': False, 'frequencyBand': [0, 0], 'f
         for i in pki:
             ax[1].annotate('Ref. peak: {:.3f} Hz'.format(f[i]),
                          (f[i],ANPSD[i]*1.08), ha='center') 
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        axTemp.xaxis.set_minor_locator(MultipleLocator(5))
         plt.tight_layout()           
         plt.show()
+        '''
     elif plot['typeForANPSD']=='only_ANPSD': #Editted EMM-ARM 22/08/2022
         plt.figure(figsize=plot['figSizeANPSD'], dpi=plot['dpi']) 
-        plt.semilogy(f,np.abs(ANPSD), label='Normalized Power Spectral Density')
-        plt.xlim([0, f[-1]])
-        
-        #Take care of y-axis limit
-        if (plot['ylimForEFDD'][0] != None) or (plot['ylimForEFDD'][1] != None): #If some limit was specified
-            if (plot['ylimForEFDD'][0] != None) and (plot['ylimForEFDD'][0] != None): 
-                #Both were specified
-                plt.ylim([plot['ylimForEFDD'][0],plot['ylimForEFDD'][1]])
-            elif (plot['ylimForEFDD'][0] != None):
-                #Only the lower bound was specified
-                plt.ylim([plot['ylimForEFDD'][0],max(np.abs(ANPSD))])
-            else:
-                #Only the upper bound was specified
-                plt.ylim(min(np.abs(ANPSD)),plot['ylimForEFDD'][1])
-
+        plt.semilogy(f,np.abs(ANPSD), label='Normalized Power\nSpectral Density')
         plt.xlabel('Frequency (Hz)', size=plot['fontSize'], fontname=plot['fontName'])
         plt.ylabel('Normalized amplitude (-)', size=plot['fontSize'], fontname=plot['fontName'])
-        #plt.ylim([1E5*ANPSD.min(),1.6*ANPSD.max()])
-        plt.plot(f[pki], ANPSD[pki], "x")
-
         for i in pki:
-            plt.annotate('Ref. peak: {:.3f} Hz'.format(f[i]),
-                         (f[i]*1.05,ANPSD[i]*.95), ha='left', size=0.75*plot['fontSize'])
-        
-        if plot['frequencyBand'][1]==0: 
+            plt.axvline(x = f[i], color = 'tab:orange', label = 'Selected peak region')
+        if plot['frequencyBandOfInterest'][1]==0: 
             #This means no frequency limits were set, so the default setting of using the maximum possible frequency is used
             axis_f = [0, f[-1]]
         else:
             #The frequency limits have been informed by the user
-            axis_f = [plot['frequencyBand'][0],plot['frequencyBand'][1]]
+            axis_f = [plot['frequencyBandOfInterest'][0],plot['frequencyBandOfInterest'][1]]
         plt.xlim(axis_f)
-
-        plt.legend(loc='lower right', fontsize=plot['fontSize'])
+        #Take care of y-axis limit of the secondary axis
+        inferiorIndex, ignoreThis = find_nearest(f, axis_f[0])
+        superiorIndex, ignoreThis = find_nearest(f, axis_f[1])
+        plt.ylim((plot['lowerYFactorPlotPSD']*min(np.abs(ANPSD[inferiorIndex]),np.abs(ANPSD[superiorIndex])),plot['upperYFactorPlotPSD']*max(np.abs(ANPSD))))
+        plt.legend(loc="upper right", fontsize=plot['fontSize'])
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        axTemp.xaxis.set_minor_locator(MultipleLocator(5))
         plt.tight_layout()
         plt.show()
            
@@ -1384,12 +1369,14 @@ def coherence(self, PSD=None, nperseg=None, plot=False):
                     ax.set_xlabel('f (Hz)',**l_for)
                 else:
                     ax.set_xticklabels([])
-          
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        axTemp.xaxis.set_minor_locator(MultipleLocator(1))
         plt.tight_layout()
     
     return gama
 
-def BFD(self, PSD, plot={'typeForBFD': False, 'frequencyBand': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}, mode='interactive', verbose=False):
+def BFD(self, PSD, plot={'typeForBFD': False, 'frequencyBandOfInterest': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}, mode='interactive', verbose=False):
     """      
     Basic Frequency Domain Method
 
@@ -1488,6 +1475,9 @@ def BFD(self, PSD, plot={'typeForBFD': False, 'frequencyBand': [0, 0], 'fontSize
             
             ax[0,0].set_ylabel('Amplitude ((m/s²)²/Hz)')
             ax[0,k//2].set_xlabel('Frequency (Hz)')
+            axTemp = plt. gca() 
+            axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+            axTemp.xaxis.set_minor_locator(MultipleLocator(1))
             plt.tight_layout(rect=[0, 0.03, 1, 0.92])    
             fig.canvas.mpl_connect('button_press_event', onclick_select)
             plt.ginput(n=1,timeout=30)
@@ -1585,6 +1575,9 @@ def BFD(self, PSD, plot={'typeForBFD': False, 'frequencyBand': [0, 0], 'fontSize
         ax[0,0].set_ylabel('Amplitude (g²/Hz)', size=plot['fontSize'], fontname=plot['fontName'])
         ax[0,i//2].set_xlabel('Frequency (Hz)', size=plot['fontSize'], fontname=plot['fontName'])   
         ax[0,i].legend(['Spectral density','Fitted curve'], loc='upper left', fontsize=plot['fontSize'])
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        axTemp.xaxis.set_minor_locator(MultipleLocator(1))
         fig.tight_layout()
             
     V  = PSD[MGi,:,pki]/PSD[MGi,MGi,pki].reshape(-1,1)            
@@ -1608,7 +1601,7 @@ def BFD(self, PSD, plot={'typeForBFD': False, 'frequencyBand': [0, 0], 'fontSize
         print("=================================================================================")            
     return freq_ft, ksi_ft, V.T, PSD
    
-def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBand': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}, mode='interactive', verbose='off'):
+def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBandOfInterest': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150, 'lowerYFactorPlotPSD': 0.8, 'upperYFactorPlotPSD': 1.2}, mode='interactive', verbose='off'):
     """      
     Enhanced Frequency-Domain Decomposition method
        
@@ -1623,19 +1616,6 @@ def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBand': [0, 0], 'fontSi
         Auxclass object that contains the spectral densities. Returned by the
         SDM function.
     plot : dictionary, optional #Editted EMM-ARM
-        It has the following format:
-            plot={'typeForEFDD': 'Autocorrelation-SVD', 'fontSize': 15, 'fontName':'Times New Roman', 'figSizeEFDD': (5,2), 'dpi': 150}
-        The peak(s) will always be plotted together with the curve
-        In which:
-            'typeForBFD' is a str, which may assume the following values:
-                If 'Autocorrelation', plot only the autocorrelation function
-                If 'Autocorrelation-SVD', plot the autocorrelation function and the SVD graph
-                If 'Autocorrelation-SVD-Phase', plot the autocorrelation function, SVD, and Phase
-                If 'False', don't plot anything
-            'fontSize' is a scalar and specifies the base font size of the plot
-            'fontName' is a str and specifies the font type of the plot
-            'figSizeEFDD' is a tuple (width, height) and specifies the size of the figure
-            'dpi' is a scalar and specifies the DPI of the figure
     mode : string, optional.
         Input method. If 'interactive', the user should select the inputs with 
         the mouse. If 'batch', the inputs must be informed in the attributes
@@ -1702,6 +1682,9 @@ def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBand': [0, 0], 'fontSi
         plt.xlabel('Frequency (Hz)')
         plt.ylabel('Singular Values of the Spectral Matrix')
         plt.xlim([0, f[-1]])
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        axTemp.xaxis.set_minor_locator(MultipleLocator(5))
         plt.tight_layout()
 
         pnt = plt.ginput(n=-1,timeout=0)          
@@ -1804,15 +1787,19 @@ def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBand': [0, 0], 'fontSi
         #Do nothing
         pass
     elif plot['typeForEFDD'] == 'Autocorrelation-SVD-Phase': #Editted EMM-ARM 22/08/2022
-        
+        #This representation only makes sense if multiple accelerometers are present in the experiment, so that you can have phase information.
+        #In the current version, this option is deactivated because it only supports 1 accelerometer
+        #TODO: provide support for multiple accelerometers and accept this representation
+        pass
+        '''
         fig = plt.figure(figsize=plot['figSizeEFDD'], dpi=plot['dpi'])
         gs = GridSpec(2, 1, height_ratios = [3, 1])
-        if plot['frequencyBand'][1]==0: 
+        if plot['frequencyBandOfInterest'][1]==0: 
             #This means no frequency limits were set, so the default setting of using the maximum possible frequency is used
             axis_f = [0, f[-1]]
         else:
             #The frequency limits have been informed by the user
-            axis_f = [plot['frequencyBand'][0],plot['frequencyBand'][1]] 
+            axis_f = [plot['frequencyBandOfInterest'][0],plot['frequencyBandOfInterest'][1]] 
         
         ax0 = plt.subplot(gs[0])     
         
@@ -1832,6 +1819,10 @@ def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBand': [0, 0], 'fontSi
                          (f[jj],USV[kk,jj]*1.25), ha='center')
             
         ax0.set_xlim(axis_f)
+        #Take care of y-axis limit of the secondary axis
+        inferiorIndex, ignoreThis = find_nearest(PSD.f[1:], axis_f[0])
+        superiorIndex, ignoreThis = find_nearest(PSD.f[1:], axis_f[1])
+        ax0.set_ylim((plot['lowerYFactorPlotPSD']*min(np.abs(PSD[0, 0, inferiorIndex]),np.abs(PSD[0, 0, superiorIndex])),plot['upperYFactorPlotPSD']*max(np.abs(PSD[0, 0, :]))))
         ax0.set_xticklabels([])
         ax0.set_ylabel('Amplitude (g²/Hz)',size=plot['fontSize'])
         ax0.set_title('Singular values of the spectral matrix',size=plot['fontSize'])
@@ -1846,19 +1837,22 @@ def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBand': [0, 0], 'fontSi
         ax1.set_xlim(axis_f)
         ax1.set_xlabel('Frequency (Hz)',size=plot['fontSize'])
         ax1.set_ylabel('MAC',size=plot['fontSize'])
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        axTemp.xaxis.set_minor_locator(MultipleLocator(5))
         
         gs.tight_layout(fig)
-
+        '''
     elif plot['typeForEFDD'] == 'Autocorrelation-SVD': #Editted EMM-ARM 22/08/2022
         
         fig = plt.figure(figsize=plot['figSizeEFDD'], dpi=plot['dpi'])
         
-        if plot['frequencyBand'][1]==0: 
+        if plot['frequencyBandOfInterest'][1]==0: 
             #This means no frequency limits were set, so the default setting of using the maximum possible frequency is used
             axis_f = [0, f[-1]]
         else:
             #The frequency limits have been informed by the user
-            axis_f = [plot['frequencyBand'][0],plot['frequencyBand'][1]]
+            axis_f = [plot['frequencyBandOfInterest'][0],plot['frequencyBandOfInterest'][1]]
 
         leg = ['1st singular value','2nd singular value','3rd singular value']
         
@@ -1876,10 +1870,16 @@ def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBand': [0, 0], 'fontSi
                          (f[jj],USV[kk,jj]*1.25), ha='center', size=0.75*plot['fontSize'])
             
         plt.xlim(axis_f)
+        #Take care of y-axis limit of the secondary axis
+        inferiorIndex, ignoreThis = find_nearest(PSD.f[1:], axis_f[0])
+        superiorIndex, ignoreThis = find_nearest(PSD.f[1:], axis_f[1])
+        plt.ylim((plot['lowerYFactorPlotPSD']*min(np.abs(PSD[0, 0, inferiorIndex]),np.abs(PSD[0, 0, superiorIndex])),plot['upperYFactorPlotPSD']*max(np.abs(PSD[0, 0, :]))))
         plt.xlabel('Frequency (Hz)',size=plot['fontSize'])
         plt.ylabel('Amplitude (g²/Hz)',size=plot['fontSize'])
         plt.title('Singular values of the spectral matrix',size=plot['fontSize'])
-        
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        axTemp.xaxis.set_minor_locator(MultipleLocator(5))
         plt.tight_layout()
     #------------------------------------------
     
@@ -1904,7 +1904,7 @@ def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBand': [0, 0], 'fontSi
      
     return fn, zt, V, PSD
 
-def fit_autc(PSD, t, te, R, env, mode='interactive', plot={'typeForEFDD-AutocorrelationFitting': False, 'frequencyBand': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}, plotScale=1):
+def fit_autc(PSD, t, te, R, env, mode='interactive', plot={'typeForEFDD-AutocorrelationFitting': False, 'frequencyBandOfInterest': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}, plotScale=1):
     """
     Fit the theorical autocorrelation function.
     
@@ -2064,7 +2064,9 @@ def fit_autc(PSD, t, te, R, env, mode='interactive', plot={'typeForEFDD-Autocorr
         ax[0,i//2].set_xlabel("Time (s)", size=plot['fontSize'])
         ax[0,0].set_ylabel("Normalized Autocorrelation", size=plot['fontSize'])
         ax[0,0].legend(loc='lower right', fontsize=plot['fontSize'])
-        fig.suptitle('Autocorrelation functions', size=plot['fontSize'])     
+        fig.suptitle('Autocorrelation functions', size=plot['fontSize'])   
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke')   
         fig.tight_layout()    
     
     
@@ -2073,7 +2075,13 @@ def fit_autc(PSD, t, te, R, env, mode='interactive', plot={'typeForEFDD-Autocorr
 #=============================================================================
 # Other functions: MAC and mode shapes graph
 #=============================================================================  
-    
+def find_nearest(array, value):
+    #In an "array", find the index and the value of the element most near to "value"
+    #Source: https://stackoverflow.com/questions/2566412/find-nearest-value-in-numpy-array
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx, array[idx]
+
 def MAC(psii, psij, plot=False):
     """
     Compute the Modal Assurance Criterion [2] from the columns of the  psii and 

@@ -18,6 +18,7 @@ from scipy.optimize import fsolve
 
 #Module for plotting
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
 
 def readSingleFile(pathForFile, selectedSystem, desiredChannel=1):
     """
@@ -52,7 +53,7 @@ def readSingleFile(pathForFile, selectedSystem, desiredChannel=1):
         # Create a dtype with the binary data format and the desired column names
         dt = np.dtype([("accel_1", 'i2')])
         data = np.fromfile(pathForFile.name, dtype=dt)
-        acceleration = pd.DataFrame(data)
+        acceleration = pd.DataFrame(data)[5:] #Ignore beggning of monitoring cause some instability of the system produces weird resutls
     elif selectedSystem == "RPi":
         acceleration = pd.read_csv(pathForFile.name)
     else:
@@ -98,7 +99,7 @@ def readBatchFile(folderPath, files, selectedSystem, desiredChannel=1):
         # Create a dtype with the binary data format and the desired column names
         dt = np.dtype([("accel_1", 'i2')])
         data = np.fromfile(folderPath+"/"+files, dtype=dt)
-        acceleration = pd.DataFrame(data)
+        acceleration = pd.DataFrame(data)[5:] #Ignore beggning of monitoring cause some instability of the system produces weird resutls
         acceleration=acceleration.to_numpy().T[desiredChannel-1]
     elif selectedSystem == "RPi":
         acceleration = pd.read_csv(folderPath+"/"+files)
@@ -380,10 +381,13 @@ def plotAccelerationTimeSeries(accelerationData, plot={'fontSize': 15, 'fontName
     plt.xlabel("Time (s)", size=plot['fontSize'], fontname=plot['fontName'])
     plt.ylabel("Acceleration (g)", size=plot['fontSize'], fontname=plot['fontName'])
     plt.legend()
+    axTemp = plt. gca() 
+    axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+    axTemp.xaxis.set_minor_locator(MultipleLocator(5))
     plt.tight_layout()
     plt.show()
 
-def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot=False, verbose=False):
+def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakPicking': 'False', 'fontSize': 15, 'fontName':'Times New Roman', 'frequencyBandOfInterest': [0, 0], 'figSizePeakPicking': (5,2), 'dpi': 150}, verbose=False):
     #TODO: Implement allowing identification of more than 1 peak
     """
     This method adapts a "crude" version of the peak-picking method for frequency identification by considering a pondering averaged with the PSD intensities around the PSD peak.
@@ -401,7 +405,7 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot=False, verbose
         Defines the value, in Hz, at each side of the peak, used to average and find the natural frequency
     plot : dictionary, optional #Editted EMM-ARM
         It has the following format:
-            plot={'typeForPeakPicking': 'False', 'fontSize': 15, 'fontName':'Times New Roman', 'figSizePeakPicking': (5,2), 'dpi': 150}
+            plot={'typeForPeakPicking': 'False', 'fontSize': 15, 'fontName':'Times New Roman', 'frequencyBandOfInterest': [0, 0], 'figSizePeakPicking': (5,2), 'dpi': 150}
         The peak(s) will always be plotted together with the curve
         In which:
             'typeForPeakPicking' is bool, which may assume the following values:
@@ -409,7 +413,8 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot=False, verbose
                 If False, don't plot anything
             'fontSize' is a scalar and specifies the base font size of the plot
             'fontName' is a str and specifies the font type of the plot
-            'figSize' is a tuple (width, height) and specifies the 
+            'frequencyBandOfInterest' is a list of two floats, specifiying the frequency band of interest
+            'figSizePeakPicking' is a tuple (width, height) and specifies the 
     verbose: bool, optional.
         Defines if verbose mode is on, so to print the results of the identification metho
 
@@ -459,15 +464,26 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot=False, verbose
         fig, ax = plt.subplots(1,1,figsize=plot['figSizePeakPicking'], dpi=plot['dpi'])
         ax.semilogy(PSD.f,abs(PSD)[0][0], label="PSD")
         ax.semilogy(PSD.f[rangeOfInterest],abs(PSD)[0][0][rangeOfInterest], label="Averaging range")
-        ax.scatter(PSD.f[PSDAveragedPeakIndex], abs(PSD)[0][0][PSDAveragedPeakIndex], label="Selected frequency")
+        ax.scatter(PSD.f[PSDAveragedPeakIndex], abs(PSD)[0][0][PSDAveragedPeakIndex], c='r', marker='x', label="Selected frequency")
+        ax.axvline(PSD.f[PSDAveragedPeakIndex], color = 'r', label = None)
         ax.set_ylabel('Amplitude (g²/Hz)', size=plot['fontSize'], fontname=plot['fontName'])
         ax.set_xlabel('Frequency (Hz)', size=plot['fontSize'], fontname=plot['fontName'])
         #Define axis limits
         indexLowerAxis = (np.abs(PSD.f - (PSD.f[indexLowerAvgingBoundary]*.50))).argmin()
         indexHigherAxis = (np.abs(PSD.f - (PSD.f[indexHigherAvgingBoundary]*1.50))).argmin()
-        ax.set_xlim([PSD.f[indexLowerAxis], PSD.f[indexHigherAxis]])
+        if plot['frequencyBandOfInterest'][1]==0: 
+            #This means no frequency limits were set, so the default setting of using the maximum possible frequency is used
+            axis_f = [PSD.f[indexLowerAxis], PSD.f[indexHigherAxis]]
+        else:
+            #The frequency limits have been informed by the user
+            axis_f = [plot['frequencyBandOfInterest'][0],plot['frequencyBandOfInterest'][1]] 
+        
+        ax.set_xlim(axis_f)
         ax.set_ylim([0.80*np.min([float(abs(PSD)[0][0][indexLowerAxis]),float(abs(PSD)[0][0][indexHigherAxis])]),abs(PSD)[0][0][yMaxPeakIndex]*1.2])
         plt.legend()
+        axTemp = plt. gca() 
+        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        axTemp.xaxis.set_minor_locator(MultipleLocator(5))
         plt.tight_layout()
 
     if verbose == True:
