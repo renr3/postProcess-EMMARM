@@ -18,6 +18,9 @@ from PyQt6.QtGui import QDoubleValidator, QIntValidator
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
+import auxFunctions_postProcessEMMARM as auxEMMARM #Library with auxiliary functions for EMM-ARM post processing
+
+
 
 debugActivated=True
 
@@ -573,24 +576,32 @@ class MainWindow(QtWidgets.QMainWindow):
     ##Run analysis
     def runAnalysis(self):
        # Create a Matplotlib Figure and Axes
-        import matplotlib.pyplot as plt
-        import random
-        from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+        accelerationDigital = auxEMMARM.readSingleFile(self.pathForFile, self.selectedSystem,self. desiredChannel)
+        acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
+        accelerationFiltered, samplingFrequencyFiltered  = auxEMMARM.filtering(acceleration, self.samplingFrequencyOriginal, self.filterConfiguration)
+        plotGeneral = {'frequencyBandOfInterest': [15,120], 'lowerYFactorPlotPSD': 0.8, 'upperYFactorPlotPSD': 1.2, 'fontSize': 10, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}
 
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
+        plotPSD = {'typeForPSD':'Single_PSD'} #The only option currently supported
+        plotNPSD = {'typeForANPSD':'only_ANPSD','figSizeANPSD': (5,5)} #The only option currently supported
 
-        fs = 500
-        f = random.randint(1, 100)
-        ts = 1/fs
-        length_of_signal = 100
-        t = np.linspace(0,1,length_of_signal)
-        
-        cosinus_signal = np.cos(2*np.pi*f*t)
-        # Customize the plot
-        ax.plot(t, cosinus_signal, label="Sample Data")
-        ax.set_xlabel("X-axis")
-        ax.set_ylabel("Y-axis")
+        plotPeakPicking={'typeForPeakPicking': True,'figSizePeakPicking': (5,5)}
+
+        plotBFD={'typeForBFD':True, 'figSizeBFD': (5,5)}
+
+        plotEFDD={'typeForEFDD-AutocorrelationFitting':True,'typeForEFDD': 'Autocorrelation-SVD','figSizeEFDD': (5,5)} #'typeForEFDD': 'Autocorrelation-SVD' is the only option currently supported option
+
+        plotSSI={'typeForStabilizationDiagram': 'StabilizationPSD', 'figSizeStabilization': (5,7)}
+
+        plotConfiguration = {}
+        plotConfiguration.update(plotGeneral)
+        plotConfiguration.update(plotPSD)
+        plotConfiguration.update(plotNPSD)
+        plotConfiguration.update(plotPeakPicking)
+        plotConfiguration.update(plotBFD)
+        plotConfiguration.update(plotEFDD)
+        plotConfiguration.update(plotSSI)
+
+        fig=auxEMMARM.plotAccelerationTimeSeries([[acceleration,self.samplingFrequencyOriginal,'Original'],], plot=plotConfiguration)
         self.graph_timeSeries.update_figure(fig)
         
 

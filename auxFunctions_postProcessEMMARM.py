@@ -46,16 +46,16 @@ def readSingleFile(pathForFile, selectedSystem, desiredChannel=1):
     """ 
     #Select the type of system
     if selectedSystem == "National":
-        acceleration = pd.read_table(pathForFile.name, names=["accel_"+str(i+1) for i in range(0,4)]) #range(0,4) because national will always provide 4 valued accel files
+        acceleration = pd.read_table(pathForFile, names=["accel_"+str(i+1) for i in range(0,4)]) #range(0,4) because national will always provide 4 valued accel files
     elif selectedSystem == "old_uEMMARM":
-        acceleration = pd.read_table(pathForFile.name, names=["accel_0"])
+        acceleration = pd.read_table(pathForFile, names=["accel_0"])
     elif selectedSystem == "uEMMARM":
         # Create a dtype with the binary data format and the desired column names
         dt = np.dtype([("accel_1", 'i2')])
-        data = np.fromfile(pathForFile.name, dtype=dt)
+        data = np.fromfile(pathForFile, dtype=dt)
         acceleration = pd.DataFrame(data)[5:] #Ignore beggning of monitoring cause some instability of the system produces weird resutls
     elif selectedSystem == "RPi":
-        acceleration = pd.read_csv(pathForFile.name)
+        acceleration = pd.read_csv(pathForFile)
     else:
         raise Exception('ERROR: Selected system is not implemented in this version')
 
@@ -391,6 +391,7 @@ def plotAccelerationTimeSeries(accelerationData, plot={'fontSize': 15, 'fontName
     """ 
 
     fig = plt.figure(figsize=plot['figSize'], dpi=plot['dpi'])
+    #fig = plt.figure(figsize=plot['figSize'])
     ax = fig.add_subplot(111)
 
     for accelerationSeries in accelerationData:

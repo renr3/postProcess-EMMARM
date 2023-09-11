@@ -372,6 +372,9 @@ conversion factor</string>
                    <property name="toolTip">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This factor will multiple the values contained in the files being read. If the files are already in terms of equivalent gravity (g), then a value equal to 1 should be inserted&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
+                   <property name="text">
+                    <string>2400</string>
+                   </property>
                    <property name="maxLength">
                     <number>8</number>
                    </property>
@@ -457,8 +460,14 @@ frequency</string>
                      <height>16777215</height>
                     </size>
                    </property>
+                   <property name="inputMask">
+                    <string/>
+                   </property>
+                   <property name="text">
+                    <string>860</string>
+                   </property>
                    <property name="maxLength">
-                    <number>8</number>
+                    <number>32767</number>
                    </property>
                   </widget>
                  </item>
@@ -3721,13 +3730,26 @@ to identify</string>
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
              <widget class="MplWidget" name="graph_timeSeries" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="toolTipDuration">
                <number>-1</number>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="MplWidget" name="graph_PSD" native="true"/>
+             <widget class="MplWidget" name="graph_PSD" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>
