@@ -3,9 +3,16 @@
 # ------------------------------------------------------
 from PyQt6.QtWidgets import*
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 
 from matplotlib.figure import Figure
+
+from PyQt6.QtGui import QFont, QFontInfo
+
+import matplotlib.pyplot as plt
+
+import matplotlib
+matplotlib.use('Qt5Agg')
     
 class MplWidget(QWidget):
     
@@ -19,4 +26,30 @@ class MplWidget(QWidget):
         vertical_layout.addWidget(self.canvas)
         
         self.canvas.axes = self.canvas.figure.add_subplot(111)
+        self.canvas.draw()
+        
+        #Get the default font style from the system and apply to the canvas
+        default_font = QFont()
+        default_font_info = QFontInfo(default_font)
+        system_font_family = default_font_info.family()
+        system_font_size = default_font_info.pointSize()
+        plt.rcParams.update({'font.family': system_font_family})
+        plt.rcParams.update({'font.size': system_font_size})
+
         self.setLayout(vertical_layout)
+
+    
+    def update_figure(self, new_figure):
+        widget_width,widget_height=self.canvas.figure.get_size_inches()
+        # Clear the existing figure content
+        self.canvas.figure.clf()
+        self.canvas.axes.cla()
+
+        # Copy the contents of the new figure onto the canvas
+        self.canvas.figure = new_figure
+
+        # Set the size of the new figure based on the widget's size
+        self.canvas.figure.set_size_inches(widget_width, widget_height)
+
+        # Redraw the canvas
+        self.canvas.draw()

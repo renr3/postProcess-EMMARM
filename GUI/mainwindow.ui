@@ -51,7 +51,7 @@
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0">
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0">
         <property name="spacing">
          <number>10</number>
         </property>
@@ -191,13 +191,25 @@
                 </property>
                </widget>
               </item>
-              <item alignment="Qt::AlignRight">
-               <widget class="QToolButton" name="toolButton_openFilePathDialog">
+              <item alignment="Qt::AlignLeft">
+               <widget class="QPushButton" name="pushButton_openFilePathDialog">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>25</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>25</width>
+                  <height>16777215</height>
+                 </size>
                 </property>
                 <property name="text">
                  <string>...</string>
@@ -500,7 +512,7 @@ frequency</string>
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tab_filtering">
            <property name="layoutDirection">
@@ -561,7 +573,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>0</y>
+                 <y>-49</y>
                  <width>292</width>
                  <height>377</height>
                 </rect>
@@ -1055,9 +1067,9 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>-248</y>
+                 <y>-861</y>
                  <width>292</width>
-                 <height>1184</height>
+                 <height>1189</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1243,7 +1255,25 @@ li.checked::marker { content: &quot;\2612&quot;; }
                        </widget>
                       </item>
                       <item>
-                       <widget class="QToolButton" name="toolButton_graphicalConfig_PSD">
+                       <widget class="QPushButton" name="pushButton_graphicalConfig_PSD">
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="minimumSize">
+                         <size>
+                          <width>25</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                        <property name="maximumSize">
+                         <size>
+                          <width>25</width>
+                          <height>16777215</height>
+                         </size>
+                        </property>
                         <property name="text">
                          <string>...</string>
                         </property>
@@ -1448,9 +1478,27 @@ around peak</string>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QToolButton" name="toolButton_graphicalConfig_PP">
+                       <widget class="QPushButton" name="pushButton_graphicalConfig_PSD_2">
                         <property name="enabled">
                          <bool>false</bool>
+                        </property>
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="minimumSize">
+                         <size>
+                          <width>25</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                        <property name="maximumSize">
+                         <size>
+                          <width>25</width>
+                          <height>16777215</height>
+                         </size>
                         </property>
                         <property name="text">
                          <string>...</string>
@@ -1794,9 +1842,27 @@ around peak</string>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QToolButton" name="toolButton_graphicalConfig_BFD">
+                       <widget class="QPushButton" name="pushButton_graphicalConfig_BFD">
                         <property name="enabled">
                          <bool>false</bool>
+                        </property>
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="minimumSize">
+                         <size>
+                          <width>25</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                        <property name="maximumSize">
+                         <size>
+                          <width>25</width>
+                          <height>16777215</height>
+                         </size>
                         </property>
                         <property name="text">
                          <string>...</string>
@@ -2375,9 +2441,27 @@ around peak</string>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QToolButton" name="toolButton_graphicalConfig_EFDD">
+                       <widget class="QPushButton" name="pushButton_graphicalConfig_EFDD">
                         <property name="enabled">
                          <bool>false</bool>
+                        </property>
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="minimumSize">
+                         <size>
+                          <width>25</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                        <property name="maximumSize">
+                         <size>
+                          <width>25</width>
+                          <height>16777215</height>
+                         </size>
                         </property>
                         <property name="text">
                          <string>...</string>
@@ -2470,6 +2554,18 @@ to identify</string>
                         <property name="enabled">
                          <bool>false</bool>
                         </property>
+                        <property name="minimumSize">
+                         <size>
+                          <width>50</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                        <property name="minimum">
+                         <number>1</number>
+                        </property>
+                        <property name="maximum">
+                         <number>3</number>
+                        </property>
                        </widget>
                       </item>
                      </layout>
@@ -2517,8 +2613,23 @@ to identify</string>
                         <property name="enabled">
                          <bool>false</bool>
                         </property>
+                        <property name="minimumSize">
+                         <size>
+                          <width>50</width>
+                          <height>0</height>
+                         </size>
+                        </property>
                         <property name="toolTip">
                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of time lags used to calculate the covariances length. Note that they are estimated up to 2*i-1 time lags. From Peeter's PhD thesis (2000), at page 77, it is recommended that the number of block rows (or time lags) of Href should be such that r i &amp;gt;= nmax, which is the maximum model order&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
+                        <property name="minimum">
+                         <number>1</number>
+                        </property>
+                        <property name="maximum">
+                         <number>120</number>
+                        </property>
+                        <property name="value">
+                         <number>60</number>
                         </property>
                        </widget>
                       </item>
@@ -2567,6 +2678,18 @@ to identify</string>
                         <property name="enabled">
                          <bool>false</bool>
                         </property>
+                        <property name="minimumSize">
+                         <size>
+                          <width>50</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                        <property name="minimum">
+                         <number>1</number>
+                        </property>
+                        <property name="value">
+                         <number>2</number>
+                        </property>
                        </widget>
                       </item>
                      </layout>
@@ -2613,6 +2736,18 @@ to identify</string>
                        <widget class="QSpinBox" name="spinBox_endingModelOrder_SSI">
                         <property name="enabled">
                          <bool>false</bool>
+                        </property>
+                        <property name="minimumSize">
+                         <size>
+                          <width>50</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                        <property name="minimum">
+                         <number>1</number>
+                        </property>
+                        <property name="value">
+                         <number>60</number>
                         </property>
                        </widget>
                       </item>
@@ -2661,8 +2796,17 @@ to identify</string>
                         <property name="enabled">
                          <bool>false</bool>
                         </property>
+                        <property name="minimumSize">
+                         <size>
+                          <width>50</width>
+                          <height>0</height>
+                         </size>
+                        </property>
                         <property name="toolTip">
                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The increment in order between consecutive iterations of the method&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                        </property>
+                        <property name="minimum">
+                         <number>1</number>
                         </property>
                        </widget>
                       </item>
@@ -2778,6 +2922,9 @@ to identify</string>
                         <property name="toolTip">
                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The allowed variation, in percentage, of the eigenfrequency between consecutive models so that the model can be considered stable in the eigenfrequency criteria&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
+                        <property name="text">
+                         <string>1</string>
+                        </property>
                         <property name="maxLength">
                          <number>8</number>
                         </property>
@@ -2883,6 +3030,9 @@ to identify</string>
                           <height>16777215</height>
                          </size>
                         </property>
+                        <property name="text">
+                         <string>8</string>
+                        </property>
                         <property name="maxLength">
                          <number>8</number>
                         </property>
@@ -2981,6 +3131,9 @@ to identify</string>
                           <width>50</width>
                           <height>16777215</height>
                          </size>
+                        </property>
+                        <property name="text">
+                         <string>150</string>
                         </property>
                         <property name="maxLength">
                          <number>8</number>
@@ -3121,6 +3274,9 @@ to identify</string>
                         <property name="toolTip">
                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The allowed variation, in percentage, of the damping ratio between consecutive models so that the model can be considered stable in the damping criteria&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
+                        <property name="text">
+                         <string>10</string>
+                        </property>
                         <property name="maxLength">
                          <number>8</number>
                         </property>
@@ -3229,6 +3385,9 @@ to identify</string>
                         <property name="toolTip">
                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Given in terms of damping ratio in percentage&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
+                        <property name="text">
+                         <string>0.1</string>
+                        </property>
                         <property name="maxLength">
                          <number>8</number>
                         </property>
@@ -3331,6 +3490,9 @@ to identify</string>
                         <property name="toolTip">
                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Given in terms of damping ratio in percentage&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
+                        <property name="text">
+                         <string>2.5</string>
+                        </property>
                         <property name="maxLength">
                          <number>8</number>
                         </property>
@@ -3414,9 +3576,27 @@ to identify</string>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QToolButton" name="toolButton_graphicalConfig_SSI">
+                       <widget class="QPushButton" name="pushButton_graphicalConfig_SSI">
                         <property name="enabled">
                          <bool>false</bool>
+                        </property>
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="minimumSize">
+                         <size>
+                          <width>25</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                        <property name="maximumSize">
+                         <size>
+                          <width>25</width>
+                          <height>16777215</height>
+                         </size>
                         </property>
                         <property name="text">
                          <string>...</string>
@@ -3435,6 +3615,13 @@ to identify</string>
             </item>
            </layout>
           </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_runAnalysis">
+          <property name="text">
+           <string>Run analysis</string>
+          </property>
          </widget>
         </item>
        </layout>
@@ -3471,6 +3658,9 @@ to identify</string>
            </item>
            <item>
             <widget class="QPushButton" name="pushButton_fileBackwards">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                <horstretch>1</horstretch>
@@ -3490,6 +3680,9 @@ to identify</string>
            </item>
            <item>
             <widget class="QPushButton" name="pushButton_fileForwards">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                <horstretch>1</horstretch>
