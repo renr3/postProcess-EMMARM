@@ -513,6 +513,39 @@ frequency</string>
             <property name="sizeConstraint">
              <enum>QLayout::SetDefaultConstraint</enum>
             </property>
+            <item alignment="Qt::AlignRight">
+             <widget class="QLabel" name="label_helpFiltering">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>15</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;In this panel, filters to be applied to the experimental data, prior to the modal analysis, are configured. Three filters are available: detrend, butterworth, and decimation.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The detrend filter remove linear trends on the data. It applies the &lt;span style=&quot; font-style:italic;&quot;&gt;detrend&lt;/span&gt; function from SciPy.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The butterworth filter allows filtering out unwanted frequency ranges, either with a low-pass, high-pass, or band-pass filter. Which type of filter to be applied depends on the frequencies informed by the user in the appropriate fields. It applies the &lt;span style=&quot; font-style:italic;&quot;&gt;butter&lt;/span&gt; function from SciPy.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The decimation filter downsamples the data. It applies the &lt;span style=&quot; font-style:italic;&quot;&gt;decimate &lt;/span&gt;function from SciPy.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The order of the filters are as follows: if active, detrending is always applied first; butterworth and decimation filters are applied in the order they were activated by the user.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="pixmap">
+               <pixmap>icon/question.png</pixmap>
+              </property>
+             </widget>
+            </item>
             <item alignment="Qt::AlignTop">
              <widget class="QScrollArea" name="scrollArea_filtering">
               <property name="sizePolicy">
@@ -529,7 +562,7 @@ frequency</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>306</width>
+                 <width>292</width>
                  <height>377</height>
                 </rect>
                </property>
@@ -588,6 +621,9 @@ frequency</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_detrendType">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -607,6 +643,9 @@ frequency</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QComboBox" name="comboBox_detrendType">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -691,6 +730,9 @@ frequency</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_butterworthOrder">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -710,11 +752,20 @@ frequency</string>
                       </item>
                       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
                        <widget class="QSpinBox" name="spinBox_butterworthOrder">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="minimumSize">
                          <size>
                           <width>40</width>
                           <height>0</height>
                          </size>
+                        </property>
+                        <property name="minimum">
+                         <number>1</number>
+                        </property>
+                        <property name="maximum">
+                         <number>16</number>
                         </property>
                        </widget>
                       </item>
@@ -737,7 +788,10 @@ frequency</string>
                        <number>0</number>
                       </property>
                       <item>
-                       <widget class="QCheckBox" name="checkBox_butterworthLowPassActivate">
+                       <widget class="QLabel" name="label_butterworthLowPass">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -746,20 +800,27 @@ frequency</string>
                         </property>
                         <property name="minimumSize">
                          <size>
-                          <width>80</width>
+                          <width>115</width>
                           <height>0</height>
                          </size>
                         </property>
                         <property name="text">
-                         <string>Low-pass </string>
+                         <string>Low-pass frequency</string>
                         </property>
                        </widget>
                       </item>
                       <item alignment="Qt::AlignLeft">
-                       <widget class="QLineEdit" name="lineEdit_butterworthLowPassValue"/>
+                       <widget class="QLineEdit" name="lineEdit_butterworthLowPassValue">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
+                       </widget>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_butterworthLowPassUnits">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -796,7 +857,10 @@ frequency</string>
                        <number>0</number>
                       </property>
                       <item>
-                       <widget class="QCheckBox" name="checkBox_butterworthHighPassActivate">
+                       <widget class="QLabel" name="label_butterworthHighPass">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -805,20 +869,27 @@ frequency</string>
                         </property>
                         <property name="minimumSize">
                          <size>
-                          <width>80</width>
+                          <width>115</width>
                           <height>0</height>
                          </size>
                         </property>
                         <property name="text">
-                         <string>High-pass</string>
+                         <string>High-pass frequency</string>
                         </property>
                        </widget>
                       </item>
                       <item alignment="Qt::AlignLeft">
-                       <widget class="QLineEdit" name="lineEdit_butterworthHighPassValue"/>
+                       <widget class="QLineEdit" name="lineEdit_butterworthHighPassValue">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
+                       </widget>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_butterworthHighPassUnits">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -890,6 +961,9 @@ frequency</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_decimationFactor">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -909,11 +983,20 @@ frequency</string>
                       </item>
                       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
                        <widget class="QSpinBox" name="spinBox_decimationFactor">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="minimumSize">
                          <size>
                           <width>40</width>
                           <height>0</height>
                          </size>
+                        </property>
+                        <property name="minimum">
+                         <number>1</number>
+                        </property>
+                        <property name="maximum">
+                         <number>50</number>
                         </property>
                        </widget>
                       </item>
@@ -933,7 +1016,36 @@ frequency</string>
            <attribute name="title">
             <string>Modal analysis methods</string>
            </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <layout class="QVBoxLayout" name="verticalLayout_8">
+            <item alignment="Qt::AlignRight">
+             <widget class="QLabel" name="label_helpModalAnalysisMethods">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>15</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;In this panel, the user can choose and configure modal analysis methods to estimate frequency and damping ratio from experimental data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="pixmap">
+               <pixmap>icon/question.png</pixmap>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QScrollArea" name="scrollArea_modalAnalysisMethods">
               <property name="widgetResizable">
@@ -943,7 +1055,7 @@ frequency</string>
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>0</y>
+                 <y>-248</y>
                  <width>292</width>
                  <height>1184</height>
                 </rect>
@@ -1175,6 +1287,9 @@ frequency</string>
                    </property>
                    <item>
                     <widget class="QCheckBox" name="checkBox_activate_PP">
+                     <property name="enabled">
+                      <bool>true</bool>
+                     </property>
                      <property name="text">
                       <string>Activate</string>
                      </property>
@@ -1203,6 +1318,9 @@ frequency</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_averagingInterval_PP">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -1227,7 +1345,7 @@ around peak</string>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLineEdit" name="lineEdit_averagingInterval_PP">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1254,6 +1372,9 @@ around peak</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_averagingIntervalUnits_PP">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -1297,6 +1418,9 @@ around peak</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_graphicalConfig_PP">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -1325,6 +1449,9 @@ around peak</string>
                       </item>
                       <item>
                        <widget class="QToolButton" name="toolButton_graphicalConfig_PP">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="text">
                          <string>...</string>
                         </property>
@@ -1375,6 +1502,9 @@ around peak</string>
                    </item>
                    <item>
                     <widget class="QLabel" name="label_curveFittingFrequency_BFD">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -1424,6 +1554,9 @@ around peak</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_curveFittingFrequencyLowerBound_BFD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -1453,7 +1586,7 @@ around peak</string>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLineEdit" name="lineEdit_curveFittingFrequencyLowerBound_BFD">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1483,6 +1616,9 @@ around peak</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_curveFittingFrequencyLowerBoundUnits_BFD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -1526,6 +1662,9 @@ around peak</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_curveFittingFrequencyUpperBound_BFD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -1549,7 +1688,7 @@ around peak</string>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLineEdit" name="lineEdit_curveFittingFrequencyUpperBound_BFD">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1579,6 +1718,9 @@ around peak</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_curveFittingFrequencyUpperBoundUnits_BFD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -1622,6 +1764,9 @@ around peak</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_graphicalConfig_BFD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -1650,6 +1795,9 @@ around peak</string>
                       </item>
                       <item>
                        <widget class="QToolButton" name="toolButton_graphicalConfig_BFD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="text">
                          <string>...</string>
                         </property>
@@ -1700,6 +1848,9 @@ around peak</string>
                    </item>
                    <item>
                     <widget class="QLabel" name="label_curveFittingFrequency_EFDD">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -1749,6 +1900,9 @@ around peak</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_curveFittingFrequencyLowerBound_EFDD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -1778,7 +1932,7 @@ around peak</string>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLineEdit" name="lineEdit_curveFittingFrequencyLowerBound_EFDD">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1808,6 +1962,9 @@ around peak</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_curveFittingFrequencyLowerBoundUnits_EFDD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -1851,6 +2008,9 @@ around peak</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_curveFittingFrequencyUpperBound_EFDD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -1874,7 +2034,7 @@ around peak</string>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLineEdit" name="lineEdit_curveFittingFrequencyUpperBound_EFDD">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1904,6 +2064,9 @@ around peak</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_curveFittingFrequencyUpperBoundUnits_EFDD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -1926,6 +2089,9 @@ around peak</string>
                    </item>
                    <item>
                     <widget class="QLabel" name="label_curveFittingTime_EFDD">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -1975,6 +2141,9 @@ around peak</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_curveFittingTimeLowerBound_EFDD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2004,7 +2173,7 @@ around peak</string>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLineEdit" name="lineEdit_curveFittingTimeLowerBound_EFDD">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -2031,6 +2200,9 @@ around peak</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_curveFittingTimeLowerBoundUnits_EFDD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2074,6 +2246,9 @@ around peak</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_curveFittingTimeUpperBound_EFDD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2097,7 +2272,7 @@ around peak</string>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLineEdit" name="lineEdit_curveFittingTimeUpperBound_EFDD">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -2124,6 +2299,9 @@ around peak</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_curveFittingTimeUpperBoundUnits_EFDD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2167,6 +2345,9 @@ around peak</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_graphicalConfig_EFDD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2195,6 +2376,9 @@ around peak</string>
                       </item>
                       <item>
                        <widget class="QToolButton" name="toolButton_graphicalConfig_EFDD">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="text">
                          <string>...</string>
                         </property>
@@ -2260,6 +2444,9 @@ around peak</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_numModes_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -2279,7 +2466,11 @@ to identify</string>
                        </widget>
                       </item>
                       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-                       <widget class="QSpinBox" name="spinBox_numModes_SSI"/>
+                       <widget class="QSpinBox" name="spinBox_numModes_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
+                       </widget>
                       </item>
                      </layout>
                     </widget>
@@ -2301,6 +2492,9 @@ to identify</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_numTimeLags_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -2320,6 +2514,9 @@ to identify</string>
                       </item>
                       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
                        <widget class="QSpinBox" name="spinBox_numTimeLags_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="toolTip">
                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of time lags used to calculate the covariances length. Note that they are estimated up to 2*i-1 time lags. From Peeter's PhD thesis (2000), at page 77, it is recommended that the number of block rows (or time lags) of Href should be such that r i &amp;gt;= nmax, which is the maximum model order&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
@@ -2345,6 +2542,9 @@ to identify</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_startingModelOrder_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -2363,7 +2563,11 @@ to identify</string>
                        </widget>
                       </item>
                       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-                       <widget class="QSpinBox" name="spinBox_startingModelOrder_SSI"/>
+                       <widget class="QSpinBox" name="spinBox_startingModelOrder_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
+                       </widget>
                       </item>
                      </layout>
                     </widget>
@@ -2385,6 +2589,9 @@ to identify</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_endingModelOrder_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -2403,7 +2610,11 @@ to identify</string>
                        </widget>
                       </item>
                       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-                       <widget class="QSpinBox" name="spinBox_endingModelOrder_SSI"/>
+                       <widget class="QSpinBox" name="spinBox_endingModelOrder_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
+                       </widget>
                       </item>
                      </layout>
                     </widget>
@@ -2425,6 +2636,9 @@ to identify</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_orderIncrement_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -2444,6 +2658,9 @@ to identify</string>
                       </item>
                       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
                        <widget class="QSpinBox" name="spinBox_orderIncrement_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="toolTip">
                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The increment in order between consecutive iterations of the method&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
@@ -2454,6 +2671,9 @@ to identify</string>
                    </item>
                    <item>
                     <widget class="QLabel" name="label_tolLabelEigenfrequencies_SSI">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -2503,6 +2723,9 @@ to identify</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_stabTolFrequency_allowedVariation_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2532,7 +2755,7 @@ to identify</string>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLineEdit" name="lineEdit_stabTolFrequency_allowedVariation_SSI">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -2562,6 +2785,9 @@ to identify</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_stabTolFrequency_allowedVariationUnits_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2605,6 +2831,9 @@ to identify</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_stabTolFrequency_lowerBound_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2634,7 +2863,7 @@ to identify</string>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLineEdit" name="lineEdit_stabTolFrequency_lowerBound_SSI">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -2661,6 +2890,9 @@ to identify</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_stabTolFrequency_lowerBoundUnits_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2704,6 +2936,9 @@ to identify</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_stabTolFrequency_upperBound_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2727,7 +2962,7 @@ to identify</string>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLineEdit" name="lineEdit_stabTolFrequency_upperBound_SSI">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -2754,6 +2989,9 @@ to identify</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_stabTolFrequency_upperBoundUnits_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2776,6 +3014,9 @@ to identify</string>
                    </item>
                    <item>
                     <widget class="QLabel" name="label_tolLabelDamping_SSI">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -2825,6 +3066,9 @@ to identify</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_stabTolDamping_allowedVariation_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2854,7 +3098,7 @@ to identify</string>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLineEdit" name="lineEdit_stabTolDamping_allowedVariation_SSI">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -2884,6 +3128,9 @@ to identify</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_stabTolDamping_allowedVariationUnits_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2927,6 +3174,9 @@ to identify</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_stabTolDamping_lowerBound_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -2956,7 +3206,7 @@ to identify</string>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLineEdit" name="lineEdit_stabTolDamping_lowerBound_SSI">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -2986,6 +3236,9 @@ to identify</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_stabTolDamping_lowerBoundUnits_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -3029,6 +3282,9 @@ to identify</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_stabTolDamping_upperBound_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -3052,7 +3308,7 @@ to identify</string>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLineEdit" name="lineEdit_stabTolDamping_upperBound_SSI">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -3082,6 +3338,9 @@ to identify</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_stabTolDamping_upperBoundUnits_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -3125,6 +3384,9 @@ to identify</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_graphicalConfig_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -3153,6 +3415,9 @@ to identify</string>
                       </item>
                       <item>
                        <widget class="QToolButton" name="toolButton_graphicalConfig_SSI">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="text">
                          <string>...</string>
                         </property>

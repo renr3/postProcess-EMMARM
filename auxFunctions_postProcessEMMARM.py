@@ -305,7 +305,7 @@ def filtering(acceleration, samplingFrequency, filterConfiguration):
         Numpy array with the series of acceleration values.
     samplingFrequency: scalar
         Scalar specifying the sampling frequency of the acceleration time series.
-    filterConfiguration: nested dictionary
+    filterConfiguration: list of dictionaries
         Nested dictionary that will list, in order of application, the filters to be applied to the acceleration series.
         The filters are simplified versions of scipy.signal functions.
         Currently, the following filter are supported, which require the following configuration.
@@ -319,8 +319,7 @@ def filtering(acceleration, samplingFrequency, filterConfiguration):
         nparray containing the filtered acceleration series.
     """ 
         #Apply as many filters as it was passed in filterConfiguration
-    for filter in filterConfiguration:
-        currentFilter = filterConfiguration[filter]
+    for currentFilter in filterConfiguration:
         if currentFilter['filter']=='detrend':
             #Apply detrending
             acceleration = detrend(acceleration, type = currentFilter['type'])
@@ -329,8 +328,20 @@ def filtering(acceleration, samplingFrequency, filterConfiguration):
             acceleration = decimate(acceleration,currentFilter['decimationFactor'])
             samplingFrequency = samplingFrequency/currentFilter['decimationFactor']
         elif currentFilter['filter']=='butterworth':
-            if (currentFilter['type']=='lowpass') or (currentFilter['type']=='highpass'):
+            if (currentFilter['frequencies'][0] is not None) and (currentFilter['frequencies'][1] is None):
+                currentFilter['type']='highpass'
                 currentFilter['frequencies']=currentFilter['frequencies'][0]
+            elif (currentFilter['frequencies'][0] is None) and (currentFilter['frequencies'][1] is not None):
+                currentFilter['type']='lowpass'
+                currentFilter['frequencies']=currentFilter['frequencies'][1]
+            elif (currentFilter['frequencies'][0] is not None) and (currentFilter['frequencies'][1] is not None):
+                currentFilter['type']='bandpass'
+            else:
+                #Since there are no frequency range to be filtered, we do not apply this filter
+                pass
+                '''
+                raise Exception("The frequencies informed are incorrectly formatted. Please provide a length-2 list [f_low, f_high], in which f_low is the low-pass frequency and f_high is the high-pass frequency. If low- or high-pass filter is desired, the unecessary frequency should be equal to None.")
+                '''
             designedButterworthFilter = butter(currentFilter['order'],currentFilter['frequencies'],currentFilter['type'], fs=samplingFrequency, output='sos')
             #designedButterworthFilter = butter(8, 15, 'hp', fs=1000, output='sos')
             acceleration = sosfilt(designedButterworthFilter, acceleration)
@@ -567,7 +578,6 @@ def findTubeFlexuralStiffnessFromDormantAge(initialGuessFlexuralStiffness, testI
         adjustedTubeFlexuralStiffness = solveCantileverTranscendentalEquation(compositeFlexuralStiffnessInitialGuess, averageDormantFrequency, tubeFullLinearMass, testInfo['freeCantileverLength'], testInfo['massAtTip'])
 
     return adjustedTubeFlexuralStiffness
-
 
 def generateHeatMap(heatMapFilePath, saveFilePath, unitForAgeInPlot):
     """

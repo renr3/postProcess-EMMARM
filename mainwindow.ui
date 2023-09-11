@@ -588,6 +588,9 @@ frequency</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_detrendType">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -607,6 +610,9 @@ frequency</string>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QComboBox" name="comboBox_detrendType">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -691,6 +697,9 @@ frequency</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_butterworthOrder">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -710,11 +719,20 @@ frequency</string>
                       </item>
                       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
                        <widget class="QSpinBox" name="spinBox_butterworthOrder">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="minimumSize">
                          <size>
                           <width>40</width>
                           <height>0</height>
                          </size>
+                        </property>
+                        <property name="minimum">
+                         <number>1</number>
+                        </property>
+                        <property name="maximum">
+                         <number>16</number>
                         </property>
                        </widget>
                       </item>
@@ -737,7 +755,10 @@ frequency</string>
                        <number>0</number>
                       </property>
                       <item>
-                       <widget class="QCheckBox" name="checkBox_butterworthLowPassActivate">
+                       <widget class="QLabel" name="label_butterworthLowPass">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -746,20 +767,27 @@ frequency</string>
                         </property>
                         <property name="minimumSize">
                          <size>
-                          <width>80</width>
+                          <width>115</width>
                           <height>0</height>
                          </size>
                         </property>
                         <property name="text">
-                         <string>Low-pass </string>
+                         <string>Low-pass frequency</string>
                         </property>
                        </widget>
                       </item>
                       <item alignment="Qt::AlignLeft">
-                       <widget class="QLineEdit" name="lineEdit_butterworthLowPassValue"/>
+                       <widget class="QLineEdit" name="lineEdit_butterworthLowPassValue">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
+                       </widget>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_butterworthLowPassUnits">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -796,7 +824,10 @@ frequency</string>
                        <number>0</number>
                       </property>
                       <item>
-                       <widget class="QCheckBox" name="checkBox_butterworthHighPassActivate">
+                       <widget class="QLabel" name="label_butterworthHighPass">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                           <horstretch>0</horstretch>
@@ -805,20 +836,27 @@ frequency</string>
                         </property>
                         <property name="minimumSize">
                          <size>
-                          <width>80</width>
+                          <width>115</width>
                           <height>0</height>
                          </size>
                         </property>
                         <property name="text">
-                         <string>High-pass</string>
+                         <string>High-pass frequency</string>
                         </property>
                        </widget>
                       </item>
                       <item alignment="Qt::AlignLeft">
-                       <widget class="QLineEdit" name="lineEdit_butterworthHighPassValue"/>
+                       <widget class="QLineEdit" name="lineEdit_butterworthHighPassValue">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
+                       </widget>
                       </item>
                       <item alignment="Qt::AlignLeft">
                        <widget class="QLabel" name="label_butterworthHighPassUnits">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -890,6 +928,9 @@ frequency</string>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_decimationFactor">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -909,6 +950,9 @@ frequency</string>
                       </item>
                       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
                        <widget class="QSpinBox" name="spinBox_decimationFactor">
+                        <property name="enabled">
+                         <bool>false</bool>
+                        </property>
                         <property name="minimumSize">
                          <size>
                           <width>40</width>
