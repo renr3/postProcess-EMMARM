@@ -328,26 +328,33 @@ def filtering(acceleration, samplingFrequency, filterConfiguration):
             acceleration = decimate(acceleration,currentFilter['decimationFactor'])
             samplingFrequency = samplingFrequency/currentFilter['decimationFactor']
         elif currentFilter['filter']=='butterworth':
-            if (currentFilter['frequencies'][0] is not None) and (currentFilter['frequencies'][1] is None):
-                currentFilter['type']='highpass'
-                currentFilter['frequencies']=currentFilter['frequencies'][0]
-            elif (currentFilter['frequencies'][0] is None) and (currentFilter['frequencies'][1] is not None):
-                currentFilter['type']='lowpass'
-                currentFilter['frequencies']=currentFilter['frequencies'][1]
-            elif (currentFilter['frequencies'][0] is not None) and (currentFilter['frequencies'][1] is not None):
-                currentFilter['type']='bandpass'
-            else:
-                #Since there are no frequency range to be filtered, we do not apply this filter
+            try:
+                if (currentFilter['frequencies'][0] is not None) and (currentFilter['frequencies'][1] is None):
+                    currentFilter['type']='highpass'
+                    currentFilter['frequencies']=currentFilter['frequencies'][0]
+                elif (currentFilter['frequencies'][0] is None) and (currentFilter['frequencies'][1] is not None):
+                    currentFilter['type']='lowpass'
+                    currentFilter['frequencies']=currentFilter['frequencies'][1]
+                elif (currentFilter['frequencies'][0] is not None) and (currentFilter['frequencies'][1] is not None):
+                    currentFilter['type']='bandpass'
+                else:
+                    #Since there are no frequency range to be filtered, we do not apply this filter
+                    pass
+                    '''
+                    raise Exception("The frequencies informed are incorrectly formatted. Please provide a length-2 list [f_low, f_high], in which f_low is the low-pass frequency and f_high is the high-pass frequency. If low- or high-pass filter is desired, the unecessary frequency should be equal to None.")
+                    '''
+            except TypeError:
+                #TODO: If TypeError has occurred, most likely it is because of  currentFilter['frequencies'] not having two components anymore, and that occurs when
+                #the code is run twice in a row without defining currentFilter again. 
+                #In such case, we can continue running the code without problem.
+                #This is a workaround to the problem, but allows for unstable situations to occur
+                #We should better handle this.
                 pass
-                '''
-                raise Exception("The frequencies informed are incorrectly formatted. Please provide a length-2 list [f_low, f_high], in which f_low is the low-pass frequency and f_high is the high-pass frequency. If low- or high-pass filter is desired, the unecessary frequency should be equal to None.")
-                '''
             designedButterworthFilter = butter(currentFilter['order'],currentFilter['frequencies'],currentFilter['type'], fs=samplingFrequency, output='sos')
             #designedButterworthFilter = butter(8, 15, 'hp', fs=1000, output='sos')
             acceleration = sosfilt(designedButterworthFilter, acceleration)
         else:
             raise Exception("The filter specified is not currently supported. See documentation for supported configuration")
-
     return acceleration, samplingFrequency
 
 def plotAccelerationTimeSeries(accelerationData, plot={'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}):
@@ -379,24 +386,26 @@ def plotAccelerationTimeSeries(accelerationData, plot={'fontSize': 15, 'fontName
             'dpi' is a scalar and specifies the DPI of the figure
     Returns
     -------    
-    Nothing.
+    fig: matplotlib figure object.
 
     """ 
 
-    plt.figure(figsize=plot['figSize'], dpi=plot['dpi'])
+    fig = plt.figure(figsize=plot['figSize'], dpi=plot['dpi'])
+    ax = fig.add_subplot(111)
 
     for accelerationSeries in accelerationData:
         time=np.arange(0,len(accelerationSeries[0])/accelerationSeries[1],1/accelerationSeries[1])
-        plt.plot(time,accelerationSeries[0], label=accelerationSeries[2])
+        ax.plot(time,accelerationSeries[0], label=accelerationSeries[2])
 
-    plt.xlabel("Time (s)", size=plot['fontSize'], fontname=plot['fontName'])
-    plt.ylabel("Acceleration (g)", size=plot['fontSize'], fontname=plot['fontName'])
-    plt.legend()
-    axTemp = plt. gca() 
+    ax.set_xlabel("Time (s)", size=plot['fontSize'], fontname=plot['fontName'])
+    ax.set_ylabel("Acceleration (g)", size=plot['fontSize'], fontname=plot['fontName'])
+    ax.legend()
+    axTemp = plt.gca() 
     axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
     axTemp.xaxis.set_minor_locator(MultipleLocator(5))
-    plt.tight_layout()
-    plt.show()
+    fig.tight_layout()
+    
+    return fig
 
 def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakPicking': 'False', 'fontSize': 15, 'fontName':'Times New Roman', 'frequencyBandOfInterest': [0, 0], 'figSizePeakPicking': (5,2), 'dpi': 150}, verbose=False):
     #TODO: Implement allowing identification of more than 1 peak
@@ -431,6 +440,7 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakP
 
     Returns
     -------    
+    fig: matplotlib figure object.
     averagedFrequency: scalar
         The frequency identified with the method called "Averaged Peak-Picking"
     PSDAveragedFrequency: scalar
@@ -511,7 +521,7 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakP
         print("=================================================================================")
 
     #return PSDaveragedPeakIndex, averagedFrequency, yMaxPeakIndex
-    return averagedFrequency, ksi_hp, PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex
+    return fig, averagedFrequency, ksi_hp, PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex
 
 def solveCantileverTranscendentalEquation(initialGuess, vibrationFrequency, linearMass, freeLength, tipMass):
     """
