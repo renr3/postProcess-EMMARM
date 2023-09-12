@@ -11,7 +11,7 @@ matplotlib.use('QtAgg')
 
 from PyQt6.QtCore import Qt
 from PyQt6 import QtWidgets
-from PyQt6.QtWidgets import QApplication, QWidget, QCheckBox, QFileDialog
+from PyQt6.QtWidgets import QApplication, QWidget, QCheckBox, QFileDialog, QDialog
 
 from PyQt6.QtGui import QDoubleValidator, QIntValidator
 
@@ -41,8 +41,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.selectedSystem='uEMMARM'
         self.selectedProcessing='singleFile'
         self.desiredChannel = 1
-        self.calibrationFactor = None
-        self.samplingFrequencyOriginal = None
+        self.calibrationFactor = 2400
+        self.samplingFrequencyOriginal = 860
         self.filterConfiguration = []
         self.nps = None
         self.modalIdentificationMethodToPerform = {'peak-picking':False, 
@@ -68,6 +68,17 @@ class MainWindow(QtWidgets.QMainWindow):
                     [None,None,None],     # [allowed_variation, lower_bound, higher_bound]: limits for damping ratios
                     [None,None,None]))    # [allowed_variation, lower_bound, higher_bound]: limits for MAC
         
+        #Define and initialize default values in plot configuration variable
+        self.plotGeneral = None
+        self.plotPSD = None
+        self.plotNPSD = None
+        self.plotPeakPicking=None
+        self.plotBFD=None
+        self.plotEFDD=None
+        self.plotSSI=None
+        self.plotConfiguration = None
+        self.populate_plotConfiguration(firstInitialization=True)
+
         #Define validators
         self.lineEdit_accelConvFactor.setValidator(QDoubleValidator())
         self.lineEdit_samplingFrequency.setValidator(QIntValidator())
@@ -102,6 +113,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lineEdit_accelConvFactor.textChanged.connect(self.update_calibrationFactor)
         self.lineEdit_samplingFrequency.textChanged.connect(self.update_samplingFrequencyOriginal)
         self.pushButton_openFilePathDialog.clicked.connect(self.openFilePathDialog)
+        self.lineEdit_filePath.textEdited.connect(self.update_pathForFile)
 
         ## Filtering panel
         #Detrend groupbox
@@ -119,19 +131,23 @@ class MainWindow(QtWidgets.QMainWindow):
         ## Modal analysis methods panel
         #PSD groupbox
         self.lineEdit_windowLength_PSD.textChanged.connect(self.update_windowLengthPSD)
+        self.pushButton_graphicalConfig_PSD.clicked.connect(lambda checked: self.openPlotConfigurationDialog(tab=0))
         #PP groupbox
         self.checkBox_activate_PP.stateChanged.connect(self.update_activatePP)
         self.lineEdit_averagingInterval_PP.textChanged.connect(self.update_intervalForAveragingHz)
+        self.pushButton_graphicalConfig_PP.clicked.connect(lambda checked: self.openPlotConfigurationDialog(tab=1))
         #BFD groupbox
         self.checkBox_activate_BFD.stateChanged.connect(self.update_activateBFD)
         self.lineEdit_curveFittingFrequencyLowerBound_BFD.textChanged.connect(self.update_lower_fint_BFD)
         self.lineEdit_curveFittingFrequencyUpperBound_BFD.textChanged.connect(self.update_upper_fint_BFD)
+        self.pushButton_graphicalConfig_BFD.clicked.connect(lambda checked: self.openPlotConfigurationDialog(tab=2))
         #EFDD groupbox
         self.checkBox_activate_EFDD.stateChanged.connect(self.update_activateEFDD)
         self.lineEdit_curveFittingFrequencyLowerBound_EFDD.textChanged.connect(self.update_lower_fint_EFDD)
         self.lineEdit_curveFittingFrequencyUpperBound_EFDD.textChanged.connect(self.update_upper_fint_EFDD)
         self.lineEdit_curveFittingTimeLowerBound_EFDD.textChanged.connect(self.update_lower_tint)
         self.lineEdit_curveFittingTimeUpperBound_EFDD.textChanged.connect(self.update_upper_tint)
+        self.pushButton_graphicalConfig_EFDD.clicked.connect(lambda checked: self.openPlotConfigurationDialog(tab=3))
         #SSI-COV groupbox
         self.checkBox_activate_SSI.stateChanged.connect(self.update_activateSSI)
         self.spinBox_numModes_SSI.valueChanged.connect(self.update_numModesToBeConsidered)
@@ -145,12 +161,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lineEdit_stabTolDamping_allowedVariation_SSI.textChanged.connect(self.update_tol_dampingUpperBound)
         self.lineEdit_stabTolDamping_lowerBound_SSI.textChanged.connect(self.update_tol_dampingUpperBound)
         self.lineEdit_stabTolDamping_upperBound_SSI.textChanged.connect(self.update_tol_dampingUpperBound)
+        self.pushButton_graphicalConfig_SSI.clicked.connect(lambda checked: self.openPlotConfigurationDialog(tab=4))
 
         ##Run analysis
         self.pushButton_runAnalysis.clicked.connect(self.runAnalysis)
 
     #Definition of methods to perform with the signals
     ##General info panel
+    def update_pathForFile(self, new_value):
+        self.pathForFile = new_value
+        print(self.pathForFile) if debugActivated else None   
     def update_selectedSystem(self, currentIndex): # i is an int
         self.selectedSystem=self.comboBox_typeOfSystem.currentText()
         #Verify which fileType is to be allowed base on the informed system
@@ -171,10 +191,14 @@ class MainWindow(QtWidgets.QMainWindow):
     def update_selectedProcessing(self):
         sender = self.sender()  # Get the sender of the signal
         if sender.isChecked():
-            if sender.text() == 'Single file':
+            if (sender.text() == 'Single file'):
                 self.selectedProcessing = 'singleFile'
+                self.pathForFile = None
+                self.lineEdit_filePath.setText("")
             elif sender.text() == 'Multiple files':
                 self.selectedProcessing = 'batchProcessing'
+                self.pathForFile = None
+                self.lineEdit_filePath.setText("")
             else:
                 #State not to be reached.
                 QApplication.quit()
@@ -207,17 +231,20 @@ class MainWindow(QtWidgets.QMainWindow):
             if selected_file_path and selected_file_path.endswith(self.selectedFileExtension[-3:]):
                 print("Selected file:", selected_file_path)
                 self.pathForFile = selected_file_path
+                self.lineEdit_filePath.setText(selected_file_path)
+                print(self.pathForFile) if debugActivated else None   
             else:
                 print("Error opening file: please select a", self.selectedFileExtension[-3:]," file.")
                 self.pathForFile = None
         elif self.selectedProcessing == 'batchProcessing':
             # Show the folder dialog and get the selected folder path
             selected_folder_path = file_dialog.getExistingDirectory(self, "Select Folder", "")
-            
             # Process the selected folder (e.g., print the folder path)
             if selected_folder_path:
                 print("Selected folder:", selected_folder_path)
                 self.pathForFile = selected_folder_path
+                self.lineEdit_filePath.setText(selected_folder_path)
+                print(self.pathForFile) if debugActivated else None  
     
     ##Filtering panel
     #Detrend groupbox
@@ -573,35 +600,23 @@ class MainWindow(QtWidgets.QMainWindow):
             self.tol[1][2]=None
         print("tol:",self.tol) if debugActivated else None
     
+    ##Plot configuration dialog
+    def openPlotConfigurationDialog(self, tab=0):
+        print(tab)
+        dlg_plotConfiguration = plotConfigDlg(self)
+        dlg_plotConfiguration.tabWidget_plotConfiguration.setCurrentIndex(tab)
+        dlg_plotConfiguration.exec()
+
+        self.plotConfiguration=dlg_plotConfiguration.plotConfiguration
+        print("Plot configuration dialog exit.\n",self.plotConfiguration) if debugActivated else None
+
     ##Run analysis
     def runAnalysis(self):
        # Create a Matplotlib Figure and Axes
         accelerationDigital = auxEMMARM.readSingleFile(self.pathForFile, self.selectedSystem,self. desiredChannel)
         acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
         accelerationFiltered, samplingFrequencyFiltered  = auxEMMARM.filtering(acceleration, self.samplingFrequencyOriginal, self.filterConfiguration)
-        plotGeneral = {'frequencyBandOfInterest': [15,120], 'lowerYFactorPlotPSD': 0.8, 'upperYFactorPlotPSD': 1.2, 'fontSize': 10, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}
-
-        plotPSD = {'typeForPSD':'Single_PSD'} #The only option currently supported
-        plotNPSD = {'typeForANPSD':'only_ANPSD','figSizeANPSD': (5,5)} #The only option currently supported
-
-        plotPeakPicking={'typeForPeakPicking': True,'figSizePeakPicking': (5,5)}
-
-        plotBFD={'typeForBFD':True, 'figSizeBFD': (5,5)}
-
-        plotEFDD={'typeForEFDD-AutocorrelationFitting':True,'typeForEFDD': 'Autocorrelation-SVD','figSizeEFDD': (5,5)} #'typeForEFDD': 'Autocorrelation-SVD' is the only option currently supported option
-
-        plotSSI={'typeForStabilizationDiagram': 'StabilizationPSD', 'figSizeStabilization': (5,7)}
-
-        plotConfiguration = {}
-        plotConfiguration.update(plotGeneral)
-        plotConfiguration.update(plotPSD)
-        plotConfiguration.update(plotNPSD)
-        plotConfiguration.update(plotPeakPicking)
-        plotConfiguration.update(plotBFD)
-        plotConfiguration.update(plotEFDD)
-        plotConfiguration.update(plotSSI)
-
-        fig=auxEMMARM.plotAccelerationTimeSeries([[acceleration,self.samplingFrequencyOriginal,'Original'],], plot=plotConfiguration)
+        fig=auxEMMARM.plotAccelerationTimeSeries([[acceleration,self.samplingFrequencyOriginal,'Original'],], plot=self.plotConfiguration)
         self.graph_timeSeries.update_figure(fig)
         
 
@@ -613,6 +628,211 @@ class MainWindow(QtWidgets.QMainWindow):
         None
 
     #Complementary functions
+    def populate_plotConfiguration (self, firstInitialization=False):
+        if firstInitialization is True:
+            self.plotGeneral = {'frequencyBandOfInterest': [0,250], 'fontSize': 10, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150,'lowerYFactorPlotPSD': 0.8, 'upperYFactorPlotPSD': 1.2}
+            self.plotPSD = {'typeForPSD':'Single_PSD'} #The only option currently supported
+            self.plotNPSD = {'typeForANPSD':'only_ANPSD','figSizeANPSD': self.plotGeneral['figSize']} #The only option currently supported
+            self.plotPeakPicking={'typeForPeakPicking': True,'figSizePeakPicking': (5,5)}
+            self.plotBFD={'typeForBFD':True, 'figSizeBFD': (5,5)}
+            self.plotEFDD={'typeForEFDD-AutocorrelationFitting':True,'typeForEFDD': 'Autocorrelation-SVD','figSizeEFDD': (5,5)} #'typeForEFDD': 'Autocorrelation-SVD' is the only option currently supported option
+            self.plotSSI={'typeForStabilizationDiagram': 'StabilizationPSD', 'figSizeStabilization': (5,7)}
+        #Rebuilt self.plotConfiguration
+        self.plotConfiguration = {}
+        self.plotConfiguration.update(self.plotGeneral)
+        self.plotConfiguration.update(self.plotPSD)
+        self.plotConfiguration.update(self.plotNPSD)
+        self.plotConfiguration.update(self.plotPeakPicking)
+        self.plotConfiguration.update(self.plotBFD)
+        self.plotConfiguration.update(self.plotEFDD)
+        self.plotConfiguration.update(self.plotSSI)
+
+        print(self.plotConfiguration) if debugActivated else None
+        
+    def try_float(self,v):
+        #Convert a string to float and handle the case the string is empty, converting it to None
+        try:
+            return float(v)
+        except Exception:
+            return None
+
+class plotConfigDlg(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        #Load the dialog's GUI
+        uic.loadUi(r'GUI/dialog_plotConfiguration.ui', self)
+        self.populate_plotConfiguration(firstInitialization=True)
+        
+        #Define validator
+        self.lineEdit_fontSize_general.setValidator(QIntValidator())
+        self.lineEdit_figureDPI_general.setValidator(QIntValidator())
+
+        #Define signals
+        self.lineEdit_frequencyBand_general.textEdited.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=0))
+        self.lineEdit_fontSize_general.textEdited.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=1))
+        self.fontComboBox_fontName_general.currentFontChanged.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=2))
+        self.lineEdit_figureSize_general.textEdited.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=3))
+        self.lineEdit_figureDPI_general.textEdited.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=4))
+        self.lineEdit_yFactorPSD_general.textEdited.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=5))
+        self.comboBox_plotType_PSD.currentIndexChanged.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=6))
+        self.comboBox_plotType_PP.currentIndexChanged.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=7))
+        self.lineEdit_figureSize_PP.textEdited.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=8))
+        self.comboBox_plotType_BFD.currentIndexChanged.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=9))
+        self.lineEdit_figureSize_BFD.textEdited.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=10))
+        self.comboBox_plotType_EFDD.currentIndexChanged.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=11))
+        self.comboBox_autocorrelationPlot_EFDD.currentIndexChanged.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=12))
+        self.lineEdit_figureSize_EFDD.textEdited.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=13))
+        self.comboBox_plotType_SSI.currentIndexChanged.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=14))
+        self.lineEdit_figureSize_SSI.textEdited.connect(lambda new_value: self.updatePlotConfiguration(new_value, parameter=15))
+
+    def updatePlotConfiguration(self, new_value, parameter=None):
+        #Check which control was updated and perform the corresponding updates in the variable
+        if parameter == 0:
+            try:
+                new_value=new_value.split(";")
+                self.plotGeneral['frequencyBandOfInterest']=[self.try_float(new_value[0]), self.try_float(new_value[1])]
+            except:
+                None
+        elif parameter == 1:
+            try:
+                self.plotGeneral['fontSize']=int(new_value)
+            except:
+                None
+        elif parameter == 2:
+            try:
+                self.plotGeneral['fontName']=new_value.family()
+            except:
+                None
+        elif parameter == 3:
+            try:
+                new_value=new_value.split(";")
+                self.plotGeneral['figSize']=[self.try_float(new_value[0]), self.try_float(new_value[1])]
+            except:
+                None
+        elif parameter == 4:
+            try:
+                self.plotGeneral['dpi']=int(new_value)
+            except:
+                None
+        elif parameter == 5:
+            try:
+                new_value=new_value.split(";")
+                self.plotGeneral['lowerYFactorPlotPSD']=self.try_float(new_value[0])
+                self.plotGeneral['upperYFactorPlotPSD']=self.try_float(new_value[1])
+            except:
+                None
+        elif parameter == 6:
+            try:
+                valueSelected = self.comboBox_plotType_PSD.currentText()
+                if valueSelected == 'Single_PSD':
+                    self.plotPSD['typeForPSD'] = valueSelected
+                elif valueSelected == 'No plot':
+                    self.plotPSD['typeForPSD'] = False
+            except:
+                None
+        elif parameter == 7:
+            try:
+                valueSelected = self.comboBox_plotType_PP.currentText()
+                if valueSelected == 'Standard':
+                    self.plotPeakPicking['typeForPeakPicking'] = True
+                    self.plotNPSD['typeForANPSD'] = False
+                elif valueSelected == 'only_ANPSD':
+                    self.plotPeakPicking['typeForPeakPicking'] = False
+                    self.plotNPSD['typeForANPSD'] = True
+                elif valueSelected == 'No plot':
+                    self.plotPeakPicking['typeForPeakPicking'] = False
+                    self.plotNPSD['typeForANPSD'] = False
+            except:
+                None
+        elif parameter == 8:
+            try:
+                new_value=new_value.split(";")
+                self.plotPeakPicking['figSizePeakPicking']=[self.try_float(new_value[0]), self.try_float(new_value[1])]
+                self.plotPeakPicking['figSizeANPSD']=self.plotPeakPicking['figSizePeakPicking']
+            except:
+                None
+        elif parameter == 9:
+            try:
+                valueSelected = self.comboBox_plotType_BFD.currentText()
+                if valueSelected == 'Standard':
+                    self.plotBFD['typeForBFD'] = True
+                elif valueSelected == 'No plot':
+                    self.plotBFD['typeForBFD'] = False
+            except:
+                None
+        elif parameter == 10:
+            try:
+                new_value=new_value.split(";")
+                self.plotBFD['figSizeBFD']=[self.try_float(new_value[0]), self.try_float(new_value[1])]
+            except:
+                None
+        elif parameter == 11:
+            try:
+                valueSelected = self.comboBox_plotType_EFDD.currentText()
+                if valueSelected == 'Autocorrelation-SVD':
+                    self.plotEFDD['typeForEFDD'] = 'Autocorrelation-SVD'
+                elif valueSelected == 'No plot':
+                    self.plotEFDD['typeForEFDD'] = False
+            except:
+                None
+        elif parameter == 12:
+            try:
+                valueSelected = self.comboBox_autocorrelationPlot_EFDD.currentText()
+                if valueSelected == 'True':
+                    self.plotEFDD['typeForEFDD-AutocorrelationFitting'] = True
+                elif valueSelected == 'False':
+                    self.plotEFDD['typeForEFDD-AutocorrelationFitting'] = False
+            except:
+                None
+        elif parameter == 13:
+            try:
+                new_value=new_value.split(";")
+                self.plotEFDD['figSizeEFDD']=[self.try_float(new_value[0]), self.try_float(new_value[1])]
+            except:
+                None
+        elif parameter == 14:
+            try:
+                valueSelected = self.comboBox_plotType_SSI.currentText()
+                if valueSelected == 'StabilizationPSD':
+                    self.plotSSI['typeForStabilizationDiagram'] = 'StabilizationPSD'
+                if valueSelected == 'StabilizationOnly':
+                    self.plotSSI['typeForStabilizationDiagram'] = 'StabilizationOnly'
+                elif valueSelected == 'No plot':
+                    self.plotSSI['typeForStabilizationDiagram'] = False
+            except:
+                None
+        elif parameter == 15:
+            try:
+                new_value=new_value.split(";")
+                self.plotSSI['figSizeStabilization']=[self.try_float(new_value[0]), self.try_float(new_value[1])]
+            except:
+                None
+        
+        self.populate_plotConfiguration()
+        print(self.plotConfiguration) if debugActivated else None
+
+    def populate_plotConfiguration (self, firstInitialization=False):
+        if firstInitialization is True:
+            self.plotGeneral = {'frequencyBandOfInterest':[0,250], 'fontSize':10, 'fontName':'Segoe UI', 'figSize':[5,2], 'dpi':150,'lowerYFactorPlotPSD':0.8, 'upperYFactorPlotPSD':1.2}
+            self.plotPSD = {'typeForPSD': 'Single_PSD'} #The only option currently supported
+            self.plotNPSD = {'typeForANPSD':None,'figSizeANPSD': self.plotGeneral['figSize']} #The only option currently supported
+            self.plotPeakPicking={'typeForPeakPicking':True,'figSizePeakPicking':[5,5]}
+            self.plotBFD={'typeForBFD':True, 'figSizeBFD':[5,5]}
+            self.plotEFDD={'typeForEFDD-AutocorrelationFitting': True,'typeForEFDD':'Autocorrelation-SVD','figSizeEFDD':[5,5]} #'typeForEFDD': 'Autocorrelation-SVD' is the only option currently supported option
+            self.plotSSI={'typeForStabilizationDiagram':'StabilizationPSD', 'figSizeStabilization':[5,5]}
+            self.plotConfiguration = None
+        #Rebuilt self.plotConfiguration
+        self.plotConfiguration = {}
+        self.plotConfiguration.update(self.plotGeneral)
+        self.plotConfiguration.update(self.plotPSD)
+        self.plotConfiguration.update(self.plotNPSD)
+        self.plotConfiguration.update(self.plotPeakPicking)
+        self.plotConfiguration.update(self.plotBFD)
+        self.plotConfiguration.update(self.plotEFDD)
+        self.plotConfiguration.update(self.plotSSI)
+
+        print(self.plotConfiguration) if debugActivated else None
+
     def try_float(self,v):
         #Convert a string to float and handle the case the string is empty, converting it to None
         try:

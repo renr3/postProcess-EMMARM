@@ -408,7 +408,7 @@ def plotAccelerationTimeSeries(accelerationData, plot={'fontSize': 15, 'fontName
     
     return fig
 
-def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakPicking': 'False', 'fontSize': 15, 'fontName':'Times New Roman', 'frequencyBandOfInterest': [0, 0], 'figSizePeakPicking': (5,2), 'dpi': 150}, verbose=False):
+def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakPicking': False, 'fontSize': 15, 'fontName':'Times New Roman', 'frequencyBandOfInterest': [0, 0], 'figSizePeakPicking': (5,2), 'dpi': 150}, verbose=False):
     #TODO: Implement allowing identification of more than 1 peak
     """
     This method adapts a "crude" version of the peak-picking method for frequency identification by considering a pondering averaged with the PSD intensities around the PSD peak.

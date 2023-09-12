@@ -1078,7 +1078,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                  <x>0</x>
                  <y>0</y>
                  <width>292</width>
-                 <height>1189</height>
+                 <height>1198</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1099,19 +1099,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                   <property name="title">
                    <string>Power spectral density computation</string>
                   </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_19">
-                   <property name="spacing">
-                    <number>6</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>9</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>3</number>
-                   </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_9">
                    <item>
                     <widget class="QWidget" name="widget_windowLength_PSD" native="true">
                      <property name="sizePolicy">
@@ -1230,7 +1218,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                      </property>
                      <layout class="QHBoxLayout" name="horizontalLayout_43">
                       <property name="topMargin">
-                       <number>3</number>
+                       <number>0</number>
                       </property>
                       <property name="bottomMargin">
                        <number>3</number>
@@ -1431,6 +1419,21 @@ around peak</string>
                         </property>
                        </widget>
                       </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QWidget" name="widget_NPSD_PP" native="true">
+                     <layout class="QVBoxLayout" name="verticalLayout_13">
+                      <property name="spacing">
+                       <number>0</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>0</number>
+                      </property>
                      </layout>
                     </widget>
                    </item>
