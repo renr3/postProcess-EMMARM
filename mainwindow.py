@@ -203,10 +203,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.selectedProcessing = 'singleFile'
                 self.pathForFile = None
                 self.lineEdit_filePath.setText("")
+                self.comboBox_fileVisualized.setEnabled(False)
             elif sender.text() == 'Multiple files':
                 self.selectedProcessing = 'batchProcessing'
                 self.pathForFile = None
                 self.lineEdit_filePath.setText("")
+                self.comboBox_fileVisualized.setEnabled(True)
             else:
                 #State not to be reached.
                 QApplication.quit()
@@ -240,6 +242,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 print("Selected file:", selected_file_path)
                 self.pathForFile = selected_file_path
                 self.lineEdit_filePath.setText(selected_file_path)
+                self.comboBox_fileVisualized.clear()
+                self.comboBox_fileVisualized.addItems([selected_file_path.split('/')[-1]])
                 print(self.pathForFile) if debugActivated else None   
             else:
                 print("Error opening file: please select a", self.selectedFileExtension[-3:]," file.")
@@ -628,29 +632,35 @@ class MainWindow(QtWidgets.QMainWindow):
             accelerationFiltered, samplingFrequencyFiltered  = auxEMMARM.filtering(acceleration, self.samplingFrequencyOriginal, self.filterConfiguration)
             yk = MRPy(accelerationFiltered,fs=samplingFrequencyFiltered)
             self.figurePSD, PSD = SSI.SDM(yk, nperseg=self.nps, plot=self.plotConfiguration, window='hann', nfft=2*self.nps)
-            
+            self.progressBar.setFormat('%p%')
+            self.progressBar.setValue(15)
+
             #Peak picking method
             if self.modalIdentificationMethodToPerform['peak-picking']==True:
                 self.figurePP, self.textualResult_PP, FPP, ZPP_HP, PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex=auxEMMARM.averagedPeakPickingMethod(PSD, self.intervalForAveragingHz, plot=self.plotConfiguration, verbose=False, textualResults=True)
             else:
                 figIgnore, FPP, ZPP_HP, ignoreThis, PSDAveragedPeakIndex, ignoreThis=auxEMMARM.averagedPeakPickingMethod(PSD, self.intervalForAveragingHz, plot=self.plotConfiguration, verbose=False)
-            
+            self.progressBar.setValue(30)
+
             #Build PSD object manually
             PSD.pki  = np.array([PSDAveragedPeakIndex], dtype=int)
             PSD.MGi  = np.array([0], dtype=int)
             PSD.svi  = np.array([0], dtype=int)
             PSD.tint = self.tint
             self.figureANPSD, PSD = SSI.ANPSD_from_SDM(PSD,plot=self.plotConfiguration, mode="batch")
-            
+            self.progressBar.setValue(45)
+
             #BFD method
             PSD.fint = np.array([self.fint_BFD[0]*FPP, self.fint_BFD[1]*FPP])
             if self.modalIdentificationMethodToPerform['BFD']==True:
-                self.figureBFD, FBFD, ZBFD_FT, VBFD, PSD_BFD = SSI.BFD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False)
+                self.figureBFD, self.textualResult_BFD, FBFD, ZBFD_FT, VBFD, PSD_BFD = SSI.BFD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False, textualResults=True)
+            self.progressBar.setValue(60)
 
             #EFDD method
             PSD.fint = np.array([self.fint_EFDD[0]*FPP, self.fint_EFDD[1]*FPP])
             if self.modalIdentificationMethodToPerform['EFDD']==True:
-                self.figureEFDD, self.figureAutc, FEFDD, ZEFDD, VEFDD, PSD_EFDD = SSI.EFDD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False)
+                self.figureEFDD, self.figureAutc, self.textualResult_EFDD, FEFDD, ZEFDD, VEFDD, PSD_EFDD = SSI.EFDD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False, textualResults=True)
+            self.progressBar.setValue(75)
 
             #SSI method
             if self.modalIdentificationMethodToPerform['SSI-COV']==True:
@@ -678,7 +688,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 #ZSSI is a ndarray that contains all the dampings associated to each model
                 #VSSI is a ndarray that contains all the mode shapes associated to each model
                 #numStablePoles is a ndarray that contains the number of stable poles associated to each clusterized stable pole
-                FSSI, ZSSI, VSSI, numStablePoles = SSI.stable_modes(FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL, stableModes, tol=0.01, spo=10, verbose=False)
+                self.textualResult_SSI, FSSI, ZSSI, VSSI, numStablePoles = SSI.stable_modes(FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL, stableModes, tol=0.01, spo=10, verbose=False, textualResults=True, numStablePoles=3)
                 ###5.4.2) ORGANIZE THE RESULTS
                 ###DESCRIPTION: the previous function was implemented for the general purpose of CESSI.py library. This will organize the results for EMM-ARM purpose
                 FSSI_CLUSTER=np.zeros(self.numModesToBeConsidered)
@@ -700,6 +710,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     print('No sufficiently large clusters could be identified') 
                 else:
                     for r, l in enumerate(np.take_along_axis(numStablePoles, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): numStablePoles_CLUSTER[r]=int(l)
+            self.progressBar.setValue(90)
 
             #Display time series and PSD
             self.figureTimeSeriesRaw=auxEMMARM.plotAccelerationTimeSeries([[acceleration,self.samplingFrequencyOriginal,'Original'],], plot=self.plotConfiguration)
@@ -717,15 +728,23 @@ class MainWindow(QtWidgets.QMainWindow):
             #Display BFD method
             if (self.plotConfiguration['typeForBFD']==True) and (self.modalIdentificationMethodToPerform['BFD']==True):
                 self.graph_BFD.update_figure(self.figureBFD)
+                self.textBrowser_results_BFD.setText(self.textualResult_BFD)
+
+            self.progressBar.setValue(95)
 
             #Display EFDD method
             if (self.plotConfiguration['typeForEFDD']=="Autocorrelation-SVD") and (self.modalIdentificationMethodToPerform['EFDD']==True):
                 self.graph_spectraEFDD.update_figure(self.figureEFDD)
                 self.graph_autcEFDD.update_figure(self.figureAutc)
+                self.textBrowser_results_EFDD.setText(self.textualResult_EFDD)
             
             #Display SSI method
             if (self.plotConfiguration['typeForEFDD-AutocorrelationFitting'] is not False) and (self.modalIdentificationMethodToPerform['SSI-COV']==True):
                 self.graph_SSI.update_figure(self.figureSSI)
+                self.textBrowser_results_SSI.setText(self.textualResult_SSI)
+
+            self.progressBar.setValue(100)
+            self.progressBar.setFormat('Analysis complete')
 
     #Function to validate inputs
     def validateInputs (self):

@@ -800,7 +800,7 @@ def stabilization_diagram(FN, ZT, VV,
 
     return fig, stb
         
-def stable_modes(FN, ZT, V, stb, tol=0.01, spo=6, verbose=False):
+def stable_modes(FN, ZT, V, stb, tol=0.01, spo=6, verbose=False, textualResults=False, numStablePoles=False):
     """
     Gather close stable poles into the same mode.
        
@@ -819,7 +819,11 @@ def stable_modes(FN, ZT, V, stb, tol=0.01, spo=6, verbose=False):
         Default is 6.
     verbose: bool, optional
         If true, intermediate messages are plotted in this function, to better track what is happening.
-    
+    textualResults: bool, optional
+        If True, returns a string containing a summary of the results of the method.
+    numStablePoles: bool, optional
+        If True, the numStablePoles is taken into account when producing textual results
+
     Returns
     ------- 
     fn : ndarray
@@ -845,7 +849,6 @@ def stable_modes(FN, ZT, V, stb, tol=0.01, spo=6, verbose=False):
     
     fsi = np.argsort(FN) #EMM-ARM (19/08/22): fsi stores the original indices of FN in the ascending order considering the values of FN elements. For examples: fsi = np.argsort([3 6 2]) would return fsi = [2 0 1]
 
-        
     #EMM-ARM (19/08/22): These are the reordered matrices in ascending order.
     FNs, ZTs, VVs = FN[fsi], ZT[fsi], VV[:,fsi]
     
@@ -881,6 +884,11 @@ def stable_modes(FN, ZT, V, stb, tol=0.01, spo=6, verbose=False):
         
         if k > len(FN)-1: break
 
+    if numStablePoles is not False:
+        elementsToBeConsidered = len(numStablePoles)
+    else:
+        elementsToBeConsidered = 3
+
     if verbose == True:
         print("=================================================================================")
         print("RESULTS FROM SSI METHOD")
@@ -889,22 +897,55 @@ def stable_modes(FN, ZT, V, stb, tol=0.01, spo=6, verbose=False):
         if fn.size == 0:
             print('No sufficiently large frequency clusters could be identified') 
         else:
-            for i, j in enumerate(np.take_along_axis(fn, eigenfrequenciesIndices, 0)[0:3]): print('#{:d}: {:.3f} Hz'.format(i+1,j)) 
+            for i, j in enumerate(np.take_along_axis(fn, eigenfrequenciesIndices, 0)[0:elementsToBeConsidered]): print('#{:d}: {:.3f} Hz'.format(i+1,j)) 
         print("Damping ratios:")
         if zt.size == 0:
             print('No sufficiently large damping clusters could be identified') 
         else:
-            for i, j in enumerate(np.take_along_axis(zt, eigenfrequenciesIndices, 0)[0:3]): print('#{:d}: {:.3f} %'.format(i+1,100*j))
+            for i, j in enumerate(np.take_along_axis(zt, eigenfrequenciesIndices, 0)[0:elementsToBeConsidered]): print('#{:d}: {:.3f} %'.format(i+1,100*j))
         print("Number of stable poles:")
         if numStablePoles.size == 0:
             print('No sufficiently large clusters could be identified') 
         else:
-            for i, j in enumerate(np.take_along_axis(numStablePoles, eigenfrequenciesIndices, 0)[0:3]): print('#{:d}: {:d}'.format(i+1,int(j)))
+            for i, j in enumerate(np.take_along_axis(numStablePoles, eigenfrequenciesIndices, 0)[0:elementsToBeConsidered]): print('#{:d}: {:d}'.format(i+1,int(j)))
         #TODO: Implement showing mode shapes
         print("END OF RESULTS FROM SSI METHOD")
         print("=================================================================================")     
 
-    return fn, zt, v, numStablePoles
+    if textualResults is True:
+        textualResultsString="Frequencies identified (in an ordered way):\n"
+        eigenfrequenciesIndices = np.flip(np.argsort(numStablePoles))
+        if fn.size == 0:
+            textualResultsString+='No sufficiently large frequency clusters could be identified\n' 
+        else:
+            if len(np.take_along_axis(fn, eigenfrequenciesIndices, 0)) < elementsToBeConsidered:
+                lastElement = len(np.take_along_axis(fn, eigenfrequenciesIndices, 0))
+            else:
+                lastElement = elementsToBeConsidered
+            for i, j in enumerate(np.take_along_axis(fn, eigenfrequenciesIndices, 0)[0:lastElement]): textualResultsString+='#{:d}: {:.3f} Hz\n'.format(i+1,j) 
+        textualResultsString+="Damping ratios:\n"
+        if zt.size == 0:
+            textualResultsString+='No sufficiently large damping clusters could be identified\n' 
+        else:
+            if len(np.take_along_axis(zt, eigenfrequenciesIndices, 0)) < elementsToBeConsidered:
+                lastElement = len(np.take_along_axis(zt, eigenfrequenciesIndices, 0))
+            else:
+                lastElement = elementsToBeConsidered
+            for i, j in enumerate(np.take_along_axis(zt, eigenfrequenciesIndices, 0)[0:lastElement]): textualResultsString+='#{:d}: {:.3f} %\n'.format(i+1,100*j)
+        textualResultsString+="Number of stable poles:\n"
+        if numStablePoles.size == 0:
+            textualResultsString+='No sufficiently large clusters could be identified\n' 
+        else:
+            if len(np.take_along_axis(zt, eigenfrequenciesIndices, 0)) < elementsToBeConsidered:
+                lastElement = len(np.take_along_axis(numStablePoles, eigenfrequenciesIndices, 0))
+            else:
+                lastElement = elementsToBeConsidered
+            for i, j in enumerate(np.take_along_axis(numStablePoles, eigenfrequenciesIndices, 0)[0:lastElement]): textualResultsString+='#{:d}: {:d}\n'.format(i+1,int(j))
+    #return PSDaveragedPeakIndex, averagedFrequency, yMaxPeakIndex
+    if textualResults is True:
+        return textualResultsString, fn, zt, v, numStablePoles
+    else:
+        return fn, zt, v, numStablePoles
     
 def plot_singular_values(T, figsize=(14, 4), nmx=40):
     """
@@ -1385,7 +1426,7 @@ def coherence(self, PSD=None, nperseg=None, plot=False):
     
     return gama
 
-def BFD(self, PSD, plot={'typeForBFD': False, 'frequencyBandOfInterest': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}, mode='interactive', verbose=False):
+def BFD(self, PSD, plot={'typeForBFD': False, 'frequencyBandOfInterest': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}, mode='interactive', verbose=False, textualResults=False):
     """      
     Basic Frequency Domain Method
 
@@ -1423,7 +1464,9 @@ def BFD(self, PSD, plot={'typeForBFD': False, 'frequencyBandOfInterest': [0, 0],
         fint, MGi and pki of the PSD object. Default is 'interactive'.
     verbose: bool, optional.
         Defines if verbose mode is on, so to print the results of the identification metho
-    
+    textualResults: bool, optional
+        If True, returns a string containing a summary of the results of the method.
+
     Returns
     -------    
     fig: matplotlib figure object. 
@@ -1611,9 +1654,26 @@ def BFD(self, PSD, plot={'typeForBFD': False, 'frequencyBandOfInterest': [0, 0],
         #TODO: Implement showing mode shapes
         print("END OF RESULTS FROM BFD METHOD")
         print("=================================================================================")            
-    return fig, freq_ft, ksi_ft, V.T, PSD
+    
+    if textualResults is True:
+        textualResultsString="Frequencies identified:\n"
+        if freq_ft.size == 0:
+            textualResultsString+='No frequencies could be identified\n' 
+        else:
+            for i, j in enumerate(freq_ft): textualResultsString+='#{:d}: {:.3f} Hz\n'.format(i+1,j) 
+        textualResultsString+="Damping ratios identified:\n"
+        if ksi_ft.size == 0:
+            textualResultsString+='No damping ratios with fitting method could be identified\n'
+        else:
+            for i, j in enumerate(ksi_ft): textualResultsString+='#{:d}: {:.3f} %\n'.format(i+1,100*j)
+
+    #return PSDaveragedPeakIndex, averagedFrequency, yMaxPeakIndex
+    if textualResults is True:
+        return fig, textualResultsString, freq_ft, ksi_ft, V.T, PSD 
+    else:
+        return fig, freq_ft, ksi_ft, V.T, PSD
    
-def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBandOfInterest': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150, 'lowerYFactorPlotPSD': 0.8, 'upperYFactorPlotPSD': 1.2}, mode='interactive', verbose='off'):
+def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBandOfInterest': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150, 'lowerYFactorPlotPSD': 0.8, 'upperYFactorPlotPSD': 1.2}, mode='interactive', verbose=False, textualResults=True):
     """      
     Enhanced Frequency-Domain Decomposition method
        
@@ -1632,9 +1692,11 @@ def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBandOfInterest': [0, 0
         Input method. If 'interactive', the user should select the inputs with 
         the mouse. If 'batch', the inputs must be informed in the attributes
         fint, MGi and pki. Default is 'interactive'.
-    verbose: string, optional.
+    verbose: bool, optional.
         Defines if verbose mode is on, so to print the results of the identification method
-    
+    textualResults: bool, optional
+        If True, returns a string containing a summary of the results of the method.
+
     Returns
     ------- 
     fig: matplotlib figure object.   
@@ -1917,7 +1979,25 @@ def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBandOfInterest': [0, 0
         #TODO: Implement showing mode shapes
         print("END OF RESULTS FROM BFD METHOD")
         print("=================================================================================")          
-     
+    
+    if textualResults is True:
+        textualResultsString="Frequencies identified:\n"
+        if fn.size == 0:
+            textualResultsString+='No frequencies could be identified\n' 
+        else:
+            for i, j in enumerate(fn): textualResultsString+='#{:d}: {:.3f} Hz\n'.format(i+1,j) 
+        textualResultsString+="Damping ratios identified:\n"
+        if zt.size == 0:
+            textualResultsString+='No damping ratios could be identified\n'
+        else:
+            for i, j in enumerate(zt): textualResultsString+='#{:d}: {:.3f} %\n'.format(i+1,100*j)
+
+    #return PSDaveragedPeakIndex, averagedFrequency, yMaxPeakIndex
+    if textualResults is True:
+        return fig, fig_autc, textualResultsString, fn, zt, V, PSD
+    else:
+        return fig, fig_autc, fn, zt, V, PSD
+    
     return fig, fig_autc, fn, zt, V, PSD
 
 def fit_autc(PSD, t, te, R, env, mode='interactive', plot={'typeForEFDD-AutocorrelationFitting': False, 'frequencyBandOfInterest': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}, plotScale=1):

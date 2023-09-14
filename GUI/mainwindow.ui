@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1010</width>
-    <height>1000</height>
+    <height>1037</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,7 +20,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_28">
     <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
@@ -655,7 +655,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>292</width>
+                    <width>306</width>
                     <height>377</height>
                    </rect>
                   </property>
@@ -1166,7 +1166,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                   <property name="geometry">
                    <rect>
                     <x>0</x>
-                    <y>-1</y>
+                    <y>0</y>
                     <width>292</width>
                     <height>1198</height>
                    </rect>
@@ -3777,7 +3777,7 @@ to identify</string>
            </sizepolicy>
           </property>
           <property name="value">
-           <number>24</number>
+           <number>0</number>
           </property>
           <property name="alignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -3814,6 +3814,9 @@ to identify</string>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
             <widget class="QComboBox" name="comboBox_fileVisualized">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>20</horstretch>
@@ -3881,7 +3884,7 @@ to identify</string>
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>4</number>
           </property>
           <widget class="QWidget" name="tab_timeSeriesPSD">
            <attribute name="title">
@@ -4040,7 +4043,13 @@ to identify</string>
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>150</height>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>170</height>
                </size>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -4074,7 +4083,7 @@ to identify</string>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>150</height>
+                   <height>140</height>
                   </size>
                  </property>
                  <property name="maximumSize">
@@ -4087,7 +4096,7 @@ to identify</string>
                   <enum>QFrame::Box</enum>
                  </property>
                  <property name="frameShadow">
-                  <enum>QFrame::Raised</enum>
+                  <enum>QFrame::Plain</enum>
                  </property>
                  <property name="sizeAdjustPolicy">
                   <enum>QAbstractScrollArea::AdjustToContents</enum>
@@ -4113,22 +4122,73 @@ li.checked::marker { content: &quot;\2612&quot;; }
            <attribute name="title">
             <string>BFD method</string>
            </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout_10">
+           <layout class="QVBoxLayout" name="verticalLayout_22">
             <item>
-             <widget class="MplWidget" name="graph_BFD" native="true">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
+             <widget class="QWidget" name="widget_graph_BFD" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout_27">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="MplWidget" name="graph_BFD" native="true">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
             </item>
             <item>
              <widget class="QWidget" name="widget_results_BFD" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>130</height>
+               </size>
+              </property>
               <layout class="QVBoxLayout" name="verticalLayout_24">
                <item>
                 <widget class="QLabel" name="label_results_BFD">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>10</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string>Results</string>
                  </property>
@@ -4137,16 +4197,28 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <item>
                 <widget class="QTextBrowser" name="textBrowser_results_BFD">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
                  </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="maximumSize">
                   <size>
-                   <width>150</width>
-                   <height>16777215</height>
+                   <width>16777215</width>
+                   <height>130</height>
                   </size>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::Box</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
                  </property>
                  <property name="html">
                   <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -4169,7 +4241,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
            <attribute name="title">
             <string>EFDD method</string>
            </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout_12">
+           <layout class="QVBoxLayout" name="verticalLayout_29">
             <item>
              <widget class="QWidget" name="widget_graphs_EFDD" native="true">
               <property name="sizePolicy">
@@ -4181,54 +4253,71 @@ li.checked::marker { content: &quot;\2612&quot;; }
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>100</height>
+                <height>0</height>
                </size>
               </property>
-              <widget class="MplWidget" name="graph_spectraEFDD" native="true">
-               <property name="geometry">
-                <rect>
-                 <x>10</x>
-                 <y>-80</y>
-                 <width>597</width>
-                 <height>336</height>
-                </rect>
+              <layout class="QVBoxLayout" name="verticalLayout_30">
+               <property name="spacing">
+                <number>0</number>
                </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
+               <property name="leftMargin">
+                <number>0</number>
                </property>
-              </widget>
-              <widget class="MplWidget" name="graph_autcEFDD" native="true">
-               <property name="geometry">
-                <rect>
-                 <x>-110</x>
-                 <y>200</y>
-                 <width>597</width>
-                 <height>677</height>
-                </rect>
+               <property name="topMargin">
+                <number>0</number>
                </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
+               <property name="rightMargin">
+                <number>0</number>
                </property>
-              </widget>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="MplWidget" name="graph_spectraEFDD" native="true">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="MplWidget" name="graph_autcEFDD" native="true">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
             </item>
             <item>
              <widget class="QWidget" name="widget_results_EFDD" native="true">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <layout class="QVBoxLayout" name="verticalLayout_25">
                <item>
                 <widget class="QLabel" name="label_results_EFDD">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>10</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="text">
                   <string>Results</string>
                  </property>
@@ -4237,16 +4326,31 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <item>
                 <widget class="QTextBrowser" name="textBrowser_results_EFDD">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
                  </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="maximumSize">
                   <size>
-                   <width>150</width>
+                   <width>16777215</width>
                    <height>16777215</height>
                   </size>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::Box</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="sizeAdjustPolicy">
+                  <enum>QAbstractScrollArea::AdjustToContents</enum>
                  </property>
                  <property name="html">
                   <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -4269,7 +4373,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
            <attribute name="title">
             <string>SSI method</string>
            </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout_13">
+           <layout class="QVBoxLayout" name="verticalLayout_31">
             <item>
              <widget class="MplWidget" name="graph_SSI" native="true">
               <property name="sizePolicy">
@@ -4283,10 +4387,16 @@ li.checked::marker { content: &quot;\2612&quot;; }
             <item>
              <widget class="QWidget" name="widget_results_SSI" native="true">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_26">
                <item>
@@ -4299,15 +4409,15 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <item>
                 <widget class="QTextBrowser" name="textBrowser_results_SSI">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>150</width>
-                   <height>16777215</height>
+                   <width>16777215</width>
+                   <height>200</height>
                   </size>
                  </property>
                  <property name="html">
