@@ -42,6 +42,7 @@ class MainWindow(QtWidgets.QMainWindow):
         #Define global properties with default values
         #These values may be used as reference for validating user inputs
         self.pathForFile=r'D:/Users/renan/OneDrive/Renan/Engenharia Civil/Ensaios/230713-EMMARM-AC_0_4/02-UEMMARM/2/0003.emm'
+        self.fileVisualizedPath = None
         self.filesToRead = None #List of files to read, in case of a batch analysis
         self.selectedFileType = ('uEMMARM files', '*.emm')
         self.selectedFileExtension = self.selectedFileType[1][-5:]
@@ -127,6 +128,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.pushButton_openFilePathDialog.clicked.connect(self.openFilePathDialog)
         self.lineEdit_filePath.textEdited.connect(self.update_pathForFile)
 
+        ## File visualized panel
+        self.pushButton_fileBackwards.clicked.connect(self.updateFileBackwards)
+        self.pushButton_fileForwards.clicked.connect(self.updateFileForwards)
+        self.comboBox_fileVisualized.currentTextChanged.connect(self.update_fileVisualized)
+        self.pushButton_updatePlot.clicked.connect(self.update_individualPlotInBatchAnalysis)
+
         ## Filtering panel
         #Detrend groupbox
         self.checkBox_detrend.stateChanged.connect(self.update_activateDetrendFilter)
@@ -181,8 +188,17 @@ class MainWindow(QtWidgets.QMainWindow):
     #Definition of methods to perform with the signals
     ##General info panel
     def update_pathForFile(self, new_value):
-        self.pathForFile = new_value
-        print(self.pathForFile) if debugActivated else None   
+        #Only updates if new_value is different than current value
+        if self.pathForFile != new_value:
+            if self.selectedProcessing == 'singleFile':
+                self.pathForFile = new_value
+            elif self.selectedProcessing == 'batchProcessing':
+                self.pathForFile = new_value
+                self.filesToRead = [x for x in os.listdir(self.pathForFile) if x[-4:] == self.selectedFileExtension[-4:]] #Get array with file names in the selected folder
+                self.comboBox_fileVisualized.clear()
+                self.comboBox_fileVisualized.addItems(self.filesToRead)
+                self.comboBox_fileVisualized.setCurrentIndex(0)
+            print(self.pathForFile) if debugActivated else None   
     def update_selectedSystem(self, currentIndex): # i is an int
         self.selectedSystem=self.comboBox_typeOfSystem.currentText()
         #Verify which fileType is to be allowed base on the informed system
@@ -246,7 +262,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def openFilePathDialog(self):
         #Create a QFileDialog instance
         file_dialog = QFileDialog(self)
-        
         if self.selectedProcessing == 'singleFile':
             # Show the file dialog and get the selected file
             file_types = "".join((self.selectedFileType[0]," ","(",self.selectedFileExtension,");;All Files (*)"))
@@ -267,7 +282,6 @@ class MainWindow(QtWidgets.QMainWindow):
             selected_folder_path = file_dialog.getExistingDirectory(self, "Select Folder", "")
             # Process the selected folder (e.g., print the folder path)
             if selected_folder_path:
-                print("Selected folder:", selected_folder_path)
                 self.pathForFile = selected_folder_path
                 self.lineEdit_filePath.setText(selected_folder_path)
                 print(self.pathForFile) if debugActivated else None 
@@ -276,6 +290,22 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.comboBox_fileVisualized.clear()
                 self.comboBox_fileVisualized.addItems(self.filesToRead)
                 self.comboBox_fileVisualized.setCurrentIndex(0)
+
+    ##File visualized panel
+    def updateFileBackwards(self):
+        if (self.comboBox_fileVisualized.currentIndex()-1) < 0:
+            self.comboBox_fileVisualized.setCurrentIndex(0) 
+        else:
+            self.comboBox_fileVisualized.setCurrentIndex(self.comboBox_fileVisualized.currentIndex()-1) 
+    def updateFileForwards(self):
+        if (self.comboBox_fileVisualized.currentIndex()+1) >= self.comboBox_fileVisualized.count():
+            self.comboBox_fileVisualized.setCurrentIndex(self.comboBox_fileVisualized.count()-1)
+        else:
+            self.comboBox_fileVisualized.setCurrentIndex(self.comboBox_fileVisualized.currentIndex()+1)  
+    def update_fileVisualized(self, new_value):
+        self.fileVisualizedPath = self.pathForFile+"/"+self.comboBox_fileVisualized.currentText()
+    def update_individualPlotInBatchAnalysis(self):
+        self.runAnalysis(updatePlotInBatchAnalysis=True)
 
     ##Filtering panel
     #Detrend groupbox
@@ -642,19 +672,35 @@ class MainWindow(QtWidgets.QMainWindow):
         print("tol:",self.tol) if debugActivated else None
     
     ##Run analysis
-    def runAnalysis(self):
+    def runAnalysis(self, updatePlotInBatchAnalysis=False):
+        '''
+        updatePlotInBatchAnalysis: bool
+            This variable is used in the context of the "Update plot" button in Batch Analysis
+        '''
         #Perform the competent analysis
-        if self.selectedProcessing == 'singleFile': 
+        if self.selectedProcessing == 'singleFile' or (updatePlotInBatchAnalysis is True): 
             #Initial processing common to any modal analysis method selected
-            accelerationDigital = auxEMMARM.readSingleFile(self.pathForFile, self.selectedSystem,self. desiredChannel)
-            acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
-            if self.selectedSystem == 'uEMMARM':
-                folderPath = "/".join(self.pathForFile.split('/')[:-1])+"/"
-                files = self.pathForFile.split('/')[-1]
-                self.samplingFrequencyOriginal = auxEMMARM.getSamplingFrequency_uEMMARM(folderPath, files, len(acceleration))
+            #Check if this call is in a single file analysis, or the update of graphs in batch analysis
+            if updatePlotInBatchAnalysis is False:
+                accelerationDigital = auxEMMARM.readSingleFile(self.pathForFile, self.selectedSystem,self. desiredChannel)
+                acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
+                if self.selectedSystem == 'uEMMARM':
+                    folderPath = "/".join(self.pathForFile.split('/')[:-1])+"/"
+                    files = self.pathForFile.split('/')[-1]
+                    self.samplingFrequencyOriginal = auxEMMARM.getSamplingFrequency_uEMMARM(folderPath, files, len(acceleration))
+                else:
+                    #Sampling frequency has been informed by the user
+                    pass
             else:
-                #Sampling frequency has been informed by the user
-                pass
+                accelerationDigital = auxEMMARM.readSingleFile(self.fileVisualizedPath, self.selectedSystem,self. desiredChannel)
+                acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
+                if self.selectedSystem == 'uEMMARM':
+                    folderPath = "/".join(self.fileVisualizedPath.split('/')[:-1])+"/"
+                    files = self.fileVisualizedPath.split('/')[-1]
+                    self.samplingFrequencyOriginal = auxEMMARM.getSamplingFrequency_uEMMARM(folderPath, files, len(acceleration))
+                else:
+                    #Sampling frequency has been informed by the user
+                    pass
             accelerationFiltered, samplingFrequencyFiltered  = auxEMMARM.filtering(acceleration, self.samplingFrequencyOriginal, self.filterConfiguration)
             yk = MRPy(accelerationFiltered,fs=samplingFrequencyFiltered)
             self.figurePSD, PSD = SSI.SDM(yk, nperseg=self.nps, plot=self.plotConfiguration, window='hann', nfft=2*self.nps)
@@ -770,7 +816,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.textBrowser_results_SSI.setText(self.textualResult_SSI)
 
             self.progressBar.setValue(100)
-            self.progressBar.setFormat('Analysis complete')
+            if updatePlotInBatchAnalysis is True:
+                self.progressBar.setFormat('Update plot complete')
+            else:
+                self.progressBar.setFormat('Analysis complete')
 
         elif self.selectedProcessing == 'batchProcessing':
             pass

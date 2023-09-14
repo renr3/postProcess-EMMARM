@@ -410,6 +410,15 @@ def plotAccelerationTimeSeries(accelerationData, plot={'fontSize': 15, 'fontName
 
     for accelerationSeries in accelerationData:
         time=np.arange(0,len(accelerationSeries[0])/accelerationSeries[1],1/accelerationSeries[1])
+        #Deal with float sampling frequency rounding errors
+        if len(time) != len(accelerationSeries[0]):
+            if len(time) > len(accelerationSeries[0]):
+                time = time[:len(accelerationSeries[0])]
+            else:
+                numberOfElementsToAppend = len(accelerationData[0])-len(time)
+                timeSteps=time[-1]-time[-2]
+                timeComplement=time[-1]+np.arange(timeSteps,numberOfElementsToAppend)*timeSteps
+                time.append(timeComplement)
         ax.plot(time,accelerationSeries[0], label=accelerationSeries[2])
 
     ax.set_xlabel("Time (s)", size=plot['fontSize'], fontname=plot['fontName'])
