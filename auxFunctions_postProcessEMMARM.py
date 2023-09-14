@@ -164,8 +164,8 @@ def getAgeAtMeasurementBatchFile(folderPath, files, firstMeasurementFile, select
         # data = np.fromfile(folderPath+"/"+files, dtype=dt)
         # acceleration = pd.DataFrame(data)
         timeData = pd.read_table(folderPath+"/"+files[0:-3]+"txt")
-        '''
-        #There is a version of uEMMARM that uses these lines. This is saved here just in case
+        
+        #There is for the curent implementation of uEMMARM
         currentSeconds = int(timeData._values[8][0])
         currentMinutes = int(timeData._values[7][0])
         currentHours = int(timeData._values[6][0])
@@ -174,7 +174,19 @@ def getAgeAtMeasurementBatchFile(folderPath, files, firstMeasurementFile, select
         currentYear = 2000+int(timeData._values[3][0])
         currentTime = datetime(year=currentYear, month=currentMonth, day=currentDay,
                                 hour=currentHours, minute=currentMinutes, second=currentSeconds, microsecond=0, tzinfo=None, fold=0)
+        
+        timeData = pd.read_table(folderPath+"/"+firstMeasurementFile[0:-3]+"txt")
+        initialSeconds = int(timeData._values[8][0])
+        initialMinutes = int(timeData._values[7][0])
+        initialHours = int(timeData._values[6][0])
+        initialDay = int(timeData._values[5][0])
+        initialMonth = int(timeData._values[4][0])
+        initialYear = 2000+int(timeData._values[3][0])
+        initialTime = datetime(year=initialYear, month=initialMonth, day=initialDay,
+                                hour=initialHours, minute=initialMinutes, second=initialSeconds, microsecond=0, tzinfo=None, fold=0)
+
         '''
+        #This is for old implementation of uEMMARM (which sometimes printed DHT22 data, and sometimes dont)
         currentSeconds = int(timeData._values[5][0])
         currentMinutes = int(timeData._values[4][0])
         currentHours = int(timeData._values[3][0])
@@ -183,7 +195,7 @@ def getAgeAtMeasurementBatchFile(folderPath, files, firstMeasurementFile, select
         currentYear = 2000+int(timeData._values[0][0])
         currentTime = datetime(year=currentYear, month=currentMonth, day=currentDay,
                                 hour=currentHours, minute=currentMinutes, second=currentSeconds, microsecond=0, tzinfo=None, fold=0)
-
+        
         timeData = pd.read_table(folderPath+"/"+firstMeasurementFile[0:-3]+"txt")
         initialSeconds = int(timeData._values[5][0])
         initialMinutes = int(timeData._values[4][0])
@@ -193,6 +205,7 @@ def getAgeAtMeasurementBatchFile(folderPath, files, firstMeasurementFile, select
         initialYear = 2000+int(timeData._values[0][0])
         initialTime = datetime(year=initialYear, month=initialMonth, day=initialDay,
                                 hour=initialHours, minute=initialMinutes, second=initialSeconds, microsecond=0, tzinfo=None, fold=0)
+        '''
 
         # Compute the difference in time
         # Account for delay in the beggining of the test
@@ -265,7 +278,7 @@ def getSamplingFrequency_uEMMARM(folderPath, files, numberOfSamplingPoints):
     with open(folderPath+"/"+files[:-4]+".txt") as f:
         lines = f.readlines()
     #Extract the duration:
-    sessionDuration = int(lines[10]) #Use 10 for uEMMARM v0.2, and 13 for uEMMARM v0.1
+    sessionDuration = int(lines[13]) #Use 10 for uEMMARM v0.2, and 13 for uEMMARM v0.1
     samplingFrequency = numberOfSamplingPoints/sessionDuration
     return samplingFrequency #Returns a np.array
 
@@ -483,6 +496,7 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakP
     fb = np.interp(-peakPSD/2,-abs(PSD)[0][0][PSDAveragedPeakIndex:],PSD.f[PSDAveragedPeakIndex:])
     ksi_hp = (fb**2-fa**2)/(4*PSD.f[PSDAveragedPeakIndex]**2)    # half-power bandwidth damping
 
+    fig = None
     if plot['typeForPeakPicking'] != False: #Editted EMM-ARM 22/08/2022: 
         fig, ax = plt.subplots(1,1,figsize=plot['figSizePeakPicking'], dpi=plot['dpi'])
         plt.close(fig)

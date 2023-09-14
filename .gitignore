@@ -2,6 +2,7 @@
 venv/
 .venv_old/
 CESSIPY-main/
+exampleFiles/
 Sandbox/
 __pycache__/
 /sandbox_postProcessEMMARM_Thomas.ipynb

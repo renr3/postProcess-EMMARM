@@ -454,6 +454,9 @@ frequency</string>
                  </item>
                  <item alignment="Qt::AlignLeft">
                   <widget class="QLineEdit" name="lineEdit_samplingFrequency">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -476,7 +479,7 @@ frequency</string>
                     <string/>
                    </property>
                    <property name="text">
-                    <string>860</string>
+                    <string>1000</string>
                    </property>
                    <property name="maxLength">
                     <number>32767</number>
@@ -3869,6 +3872,16 @@ to identify</string>
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_updatePlot">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Update plot</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -3884,7 +3897,7 @@ to identify</string>
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>4</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="tab_timeSeriesPSD">
            <attribute name="title">
@@ -4436,6 +4449,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
              </widget>
             </item>
            </layout>
+          </widget>
+          <widget class="QWidget" name="tab_frequencyEvolution">
+           <attribute name="title">
+            <string>Frequency evolution</string>
+           </attribute>
           </widget>
          </widget>
         </item>

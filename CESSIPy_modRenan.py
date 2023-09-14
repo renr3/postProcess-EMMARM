@@ -1673,7 +1673,7 @@ def BFD(self, PSD, plot={'typeForBFD': False, 'frequencyBandOfInterest': [0, 0],
     else:
         return fig, freq_ft, ksi_ft, V.T, PSD
    
-def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBandOfInterest': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150, 'lowerYFactorPlotPSD': 0.8, 'upperYFactorPlotPSD': 1.2}, mode='interactive', verbose=False, textualResults=True):
+def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBandOfInterest': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150, 'lowerYFactorPlotPSD': 0.8, 'upperYFactorPlotPSD': 1.2}, mode='interactive', verbose=False, textualResults=False):
     """      
     Enhanced Frequency-Domain Decomposition method
        

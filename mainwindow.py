@@ -7,6 +7,9 @@
 import sys
 import numpy as np
 
+#Module to deal with files from the system
+import os
+
 #Modules for GUI
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import Qt
@@ -39,6 +42,7 @@ class MainWindow(QtWidgets.QMainWindow):
         #Define global properties with default values
         #These values may be used as reference for validating user inputs
         self.pathForFile=r'D:/Users/renan/OneDrive/Renan/Engenharia Civil/Ensaios/230713-EMMARM-AC_0_4/02-UEMMARM/2/0003.emm'
+        self.filesToRead = None #List of files to read, in case of a batch analysis
         self.selectedFileType = ('uEMMARM files', '*.emm')
         self.selectedFileExtension = self.selectedFileType[1][-5:]
         
@@ -186,15 +190,19 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.selectedSystem == "uEMMARM":
             self.selectedFileType = fileTypes[0]
             self.selectedFileExtension = self.selectedFileType[1][-5:]
+            self.lineEdit_samplingFrequency.setEnabled(False)
         elif self.selectedSystem == "National":
             self.selectedFileType = fileTypes[1]
             self.selectedFileExtension = self.selectedFileType[1][-5:]
+            self.lineEdit_samplingFrequency.setEnabled(True)
         elif self.selectedSystem == "old_uEMMARM":
             self.selectedFileType = fileTypes[1]
             self.selectedFileExtension = self.selectedFileType[1][-5:]
+            self.lineEdit_samplingFrequency.setEnabled(True)
         elif self.selectedSystem == "RPi":
             self.selectedFileType = fileTypes[2]
             self.selectedFileExtension = self.selectedFileType[1][-5:]
+            self.lineEdit_samplingFrequency.setEnabled(True)
         print(self.selectedSystem) if debugActivated else None
     def update_selectedProcessing(self):
         sender = self.sender()  # Get the sender of the signal
@@ -204,11 +212,17 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.pathForFile = None
                 self.lineEdit_filePath.setText("")
                 self.comboBox_fileVisualized.setEnabled(False)
+                self.pushButton_updatePlot.setEnabled(False)
+                self.pushButton_fileBackwards.setEnabled(False)
+                self.pushButton_fileForwards.setEnabled(False)
             elif sender.text() == 'Multiple files':
                 self.selectedProcessing = 'batchProcessing'
                 self.pathForFile = None
                 self.lineEdit_filePath.setText("")
                 self.comboBox_fileVisualized.setEnabled(True)
+                self.pushButton_updatePlot.setEnabled(True)
+                self.pushButton_fileBackwards.setEnabled(True)
+                self.pushButton_fileForwards.setEnabled(True)
             else:
                 #State not to be reached.
                 QApplication.quit()
@@ -256,7 +270,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 print("Selected folder:", selected_folder_path)
                 self.pathForFile = selected_folder_path
                 self.lineEdit_filePath.setText(selected_folder_path)
-                print(self.pathForFile) if debugActivated else None  
+                print(self.pathForFile) if debugActivated else None 
+                #Retrieve list of files to read
+                self.filesToRead = [x for x in os.listdir(self.pathForFile) if x[-4:] == self.selectedFileExtension[-4:]] #Get array with file names in the selected folder
+                self.comboBox_fileVisualized.clear()
+                self.comboBox_fileVisualized.addItems(self.filesToRead)
+                self.comboBox_fileVisualized.setCurrentIndex(0)
 
     ##Filtering panel
     #Detrend groupbox
@@ -629,6 +648,13 @@ class MainWindow(QtWidgets.QMainWindow):
             #Initial processing common to any modal analysis method selected
             accelerationDigital = auxEMMARM.readSingleFile(self.pathForFile, self.selectedSystem,self. desiredChannel)
             acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
+            if self.selectedSystem == 'uEMMARM':
+                folderPath = "/".join(self.pathForFile.split('/')[:-1])+"/"
+                files = self.pathForFile.split('/')[-1]
+                self.samplingFrequencyOriginal = auxEMMARM.getSamplingFrequency_uEMMARM(folderPath, files, len(acceleration))
+            else:
+                #Sampling frequency has been informed by the user
+                pass
             accelerationFiltered, samplingFrequencyFiltered  = auxEMMARM.filtering(acceleration, self.samplingFrequencyOriginal, self.filterConfiguration)
             yk = MRPy(accelerationFiltered,fs=samplingFrequencyFiltered)
             self.figurePSD, PSD = SSI.SDM(yk, nperseg=self.nps, plot=self.plotConfiguration, window='hann', nfft=2*self.nps)
@@ -745,6 +771,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.progressBar.setValue(100)
             self.progressBar.setFormat('Analysis complete')
+
+        elif self.selectedProcessing == 'batchProcessing':
+            pass
 
     #Function to validate inputs
     def validateInputs (self):
