@@ -708,7 +708,8 @@ def stabilization_diagram(FN, ZT, VV,
         fig = None
     elif plot['typeForStabilizationDiagram']=='StabilizationOnly':  
         #Plot stabilization diagram
-        plt.figure(figsize=plot['figSizeStabilization'], dpi=plot['dpi']);
+        plt.figure(figsize=plot['figSizeStabilization'], dpi=plot['dpi'])
+        plt.close(fig)
         ax = fig.add_subplot(111)
         for ii in range(n.shape[0]): 
             #EMM-ARM (19/08/22): This function iterates through each model order.
@@ -743,7 +744,8 @@ def stabilization_diagram(FN, ZT, VV,
 
     elif plot['typeForStabilizationDiagram']=='StabilizationPSD':          
         # Crete figure and the first axis
-        fig, ax_left = plt.subplots(figsize=plot['figSizeStabilization'], dpi=plot['dpi']);       
+        fig, ax_left = plt.subplots(figsize=plot['figSizeStabilization'], dpi=plot['dpi'])
+        plt.close(fig)       
 
         #Plot first the PSD using the secondary axis     
         ax_right = ax_left.twinx()       
@@ -1111,6 +1113,7 @@ def SDM(self, nperseg=None, plot={'typeForPSD': False, 'frequencyBandOfInterest'
             axis_f = [plot['frequencyBandOfInterest'][0],plot['frequencyBandOfInterest'][1]]
             
         fig = plt.figure(figsize=plot['figSize'], dpi=plot['dpi'])
+        plt.close(fig)
         ax = fig.add_subplot(111)
         ax.semilogy(f[1:],np.abs(G[0, 0, 1:]))
         ax.set_xlim(axis_f)
@@ -1118,11 +1121,11 @@ def SDM(self, nperseg=None, plot={'typeForPSD': False, 'frequencyBandOfInterest'
         inferiorIndex, ignoreThis = find_nearest(f[1:], axis_f[0])
         superiorIndex, ignoreThis = find_nearest(f[1:], axis_f[1])
         ax.set_ylim((plot['lowerYFactorPlotPSD']*min(np.abs(G[0, 0, inferiorIndex]),np.abs(G[0, 0, superiorIndex])),plot['upperYFactorPlotPSD']*max(np.abs(G[0, 0, :]))))
-        ax.set_xlabel('f (Hz)',size=plot['fontSize'], fontname=plot['fontName'])
+        ax.set_xlabel('Frequency (Hz)',size=plot['fontSize'], fontname=plot['fontName'])
         ax.set_ylabel('Amplitude (g²/Hz)',size=plot['fontSize'], fontname=plot['fontName'])            
-        axTemp = plt. gca() 
-        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
-        axTemp.xaxis.set_minor_locator(MultipleLocator(5))
+        #axTemp = plt. gca() 
+        ax.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        ax.xaxis.set_minor_locator(MultipleLocator(5))
         fig.tight_layout()    
      
     PSD                          = auxclass(G)
@@ -1232,6 +1235,7 @@ def ANPSD_from_SDM(PSD, plot={'typeForANPSD': False, 'frequencyBandOfInterest': 
     else:
         sys.exit('mode must be interactive or batch')
     
+    fig = None
     if plot['typeForANPSD'] is False:
         #Do nothing
         fig = None
@@ -1272,12 +1276,13 @@ def ANPSD_from_SDM(PSD, plot={'typeForANPSD': False, 'frequencyBandOfInterest': 
         '''
     elif plot['typeForANPSD']=='only_ANPSD': #Editted EMM-ARM 22/08/2022
         fig = plt.figure(figsize=plot['figSizeANPSD'], dpi=plot['dpi']) 
+        plt.close(fig)
         ax = fig.add_subplot(111)
         ax.semilogy(f,np.abs(ANPSD), label='Normalized Power\nSpectral Density')
         ax.set_xlabel('Frequency (Hz)', size=plot['fontSize'], fontname=plot['fontName'])
         ax.set_ylabel('Normalized amplitude (-)', size=plot['fontSize'], fontname=plot['fontName'])
         for i in pki:
-            ax.axvline(x = f[i], color = 'tab:orange', label = 'Selected peak region')
+            ax.axvline(x = f[i], color = 'r', label = 'Selected peak region')
         if plot['frequencyBandOfInterest'][1]==0: 
             #This means no frequency limits were set, so the default setting of using the maximum possible frequency is used
             axis_f = [0, f[-1]]
@@ -1290,11 +1295,11 @@ def ANPSD_from_SDM(PSD, plot={'typeForANPSD': False, 'frequencyBandOfInterest': 
         superiorIndex, ignoreThis = find_nearest(f, axis_f[1])
         ax.set_ylim((plot['lowerYFactorPlotPSD']*min(np.abs(ANPSD[inferiorIndex]),np.abs(ANPSD[superiorIndex])),plot['upperYFactorPlotPSD']*max(np.abs(ANPSD))))
         ax.legend(loc="upper right", fontsize=plot['fontSize'])
-        axTemp = plt. gca() 
-        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
-        axTemp.xaxis.set_minor_locator(MultipleLocator(5))
+        #axTemp = plt.gca() 
+        ax.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        ax.xaxis.set_minor_locator(MultipleLocator(5))
         fig.tight_layout()
-           
+
     PSD.ANPSD  = ANPSD
     PSD.pki    = pki
         
@@ -1547,8 +1552,10 @@ def BFD(self, PSD, plot={'typeForBFD': False, 'frequencyBandOfInterest': [0, 0],
     P   = np.zeros((len(pki),3))
     idx = np.argmin(np.abs(f-fint.reshape(-1,1)),axis=1)
     
+    fig = None
     if plot['typeForBFD'] is True:
         fig, ax = plt.subplots(1,len(MGi),figsize=(len(MGi)*plot['figSizeBFD'][0], plot['figSizeBFD'][1]),squeeze=False, dpi=plot['dpi']) #Editted EMM-ARM 22/08/2022
+        plt.close(fig)
 
     for i, (j, k, ii, si) in enumerate(zip(MGi,pki,idx[::2],idx[1::2])):
         normFactor = 1 #make normFactor=max(G[j,ii:si]) if you want the fitting to be performed over a normalized PSD
@@ -1786,8 +1793,10 @@ def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBandOfInterest': [0, 0
     R   =   R[:,:nperseg]/win        # divide by windows to remove bias
     env = env[:,:nperseg]/win
     
-    fn, zt, PSD = fit_autc(PSD, t, te, R, env, mode, plot)     
-    
+    fig_autc, fn, zt, PSD = fit_autc(PSD, t, te, R, env, mode, plot)     
+    plt.close('all')
+    fig = None
+
     #----------------------------------------          
     if plot['typeForEFDD'] is False:
         #Do nothing
@@ -1852,6 +1861,7 @@ def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBandOfInterest': [0, 0
     elif plot['typeForEFDD'] == 'Autocorrelation-SVD': #Editted EMM-ARM 22/08/2022
         
         fig = plt.figure(figsize=plot['figSizeEFDD'], dpi=plot['dpi'])
+        plt.close(fig)
         ax = fig.add_subplot(111)
         if plot['frequencyBandOfInterest'][1]==0: 
             #This means no frequency limits were set, so the default setting of using the maximum possible frequency is used
@@ -1866,7 +1876,7 @@ def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBandOfInterest': [0, 0
             ax.semilogy(f[1:],USV[ii,1:],label=leg[ii])
             
         for i, (ii, si) in enumerate(zip(idx[::2],idx[1::2])):
-            plt.semilogy(f[ii:si],np.abs(FSD[i,ii:si]),'r',label=(i//1)*"_"+'Mode')
+            ax.semilogy(f[ii:si],np.abs(FSD[i,ii:si]),'r',label=(i//1)*"_"+'Mode')
         
         ax.legend(fontsize=plot['fontSize'])
         ax.plot(f[pki], USV[svi,pki], "x")
@@ -1908,7 +1918,7 @@ def EFDD(self, PSD, plot={'typeForEFDD': False, 'frequencyBandOfInterest': [0, 0
         print("END OF RESULTS FROM BFD METHOD")
         print("=================================================================================")          
      
-    return fig, fn, zt, V, PSD
+    return fig, fig_autc, fn, zt, V, PSD
 
 def fit_autc(PSD, t, te, R, env, mode='interactive', plot={'typeForEFDD-AutocorrelationFitting': False, 'frequencyBandOfInterest': [0, 0], 'fontSize': 15, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150}, plotScale=1):
     """
@@ -1965,12 +1975,9 @@ def fit_autc(PSD, t, te, R, env, mode='interactive', plot={'typeForEFDD-Autocorr
         Initial and final time interval used to fit the theoretical 
         autocorrelation function. 
     """    
-
-    #--------------------------------------------------
     def envelope(t, Xp, η):
         
         return Xp*np.exp(-η*t)
-    
     def decay(t, Xp, η, fn):
 
         omega_n = 2*np.pi*fn
@@ -1978,8 +1985,6 @@ def fit_autc(PSD, t, te, R, env, mode='interactive', plot={'typeForEFDD-Autocorr
         omega_d = omega_n * (1-ksi**2)**.5
         
         return Xp*np.exp(-η*t)*np.cos(omega_d*t)
-    
-    #--------------------------------------------------
     
     if mode.lower() == 'interactive':    
 
@@ -2000,9 +2005,6 @@ def fit_autc(PSD, t, te, R, env, mode='interactive', plot={'typeForEFDD-Autocorr
             plt.close()
             
         PSD.tint = te[idx]
-    
-    #----------------------------------------
-    
     elif mode.lower() == 'batch':
         try:
             tint = PSD.tint            
@@ -2010,14 +2012,9 @@ def fit_autc(PSD, t, te, R, env, mode='interactive', plot={'typeForEFDD-Autocorr
             sys.exit('PSD must have the attribute tint in batch mode')   
          
         idx = np.argmin(np.abs(te-tint.reshape(-1,1)),axis=1)
-        
-    #----------------------------------------
-    
     else:
         sys.exit('mode should be interactive or batch')           
             
-    #----------------------------------------
-
     P   =  np.zeros((len(PSD.pki), 2))
     Q   =  np.zeros((len(PSD.pki), 1))
        
@@ -2041,21 +2038,17 @@ def fit_autc(PSD, t, te, R, env, mode='interactive', plot={'typeForEFDD-Autocorr
         
         Q[i,:], cv = curve_fit(lambda x, fn: decay(x,*P[i,:], fn),  
              t[2*j:2*k], R[i,2*j:2*k], p0=Q0, bounds=(Qmin, Qmax)) # fit for fn
-
-    #--------------------------------------------------
-
+    
     fn = Q[:,0]
     zt = P[:,1]/(2*np.pi*fn)
 
-    #--------------------------------------------------
-    
+    fig = None
     if plot['typeForEFDD-AutocorrelationFitting'] is True:
         
         tf = np.linspace(0,t[-1],len(t)*100)
-
         fig, ax = plt.subplots(1, len(PSD.pki), figsize=plot['figSizeEFDD'], dpi=plot['dpi'],
                                sharey=True,squeeze=False)   
-        
+        plt.close(fig)
         for i, (j, k) in enumerate(zip(idx[::2],idx[1::2])):
             ax[0,i].plot(t[2*j:2*k],R[i,2*j:2*k],'bx', label='experimental data' )
             ax[0,i].plot(tf,decay(tf, *P[i,:], *Q[i,:]), label='fitted curve') #fitted curve
@@ -2064,9 +2057,7 @@ def fit_autc(PSD, t, te, R, env, mode='interactive', plot={'typeForEFDD-Autocorr
             ax[0,i].text(.99, .99, r'$f_n$ = {:.3f} Hz'.format(fn[i]) 
                 +'\n'+ r'$\xi$ = {:.2f}%'.format(zt[i]*100), 
                 horizontalalignment='right',verticalalignment='top', 
-                transform=ax[0,i].transAxes,fontsize=11)
-
-           
+                transform=ax[0,i].transAxes,fontsize=11)     
         ax[0,i//2].set_xlabel("Time (s)", size=plot['fontSize'])
         ax[0,0].set_ylabel("Normalized Autocorrelation", size=plot['fontSize'])
         ax[0,0].legend(loc='lower right', fontsize=plot['fontSize'])
@@ -2075,8 +2066,7 @@ def fit_autc(PSD, t, te, R, env, mode='interactive', plot={'typeForEFDD-Autocorr
         axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke')   
         fig.tight_layout()    
     
-    
-    return fn, zt, PSD
+    return fig, fn, zt, PSD
 
 #=============================================================================
 # Other functions: MAC and mode shapes graph

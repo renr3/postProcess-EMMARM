@@ -391,6 +391,7 @@ def plotAccelerationTimeSeries(accelerationData, plot={'fontSize': 15, 'fontName
     """ 
 
     fig = plt.figure(figsize=plot['figSize'], dpi=plot['dpi'])
+    plt.close(fig)
     #fig = plt.figure(figsize=plot['figSize'])
     ax = fig.add_subplot(111)
 
@@ -408,7 +409,7 @@ def plotAccelerationTimeSeries(accelerationData, plot={'fontSize': 15, 'fontName
     
     return fig
 
-def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakPicking': False, 'fontSize': 15, 'fontName':'Times New Roman', 'frequencyBandOfInterest': [0, 0], 'figSizePeakPicking': (5,2), 'dpi': 150}, verbose=False):
+def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakPicking': False, 'fontSize': 15, 'fontName':'Times New Roman', 'frequencyBandOfInterest': [0, 0], 'figSizePeakPicking': (5,2), 'dpi': 150}, verbose=False, textualResults=False):
     #TODO: Implement allowing identification of more than 1 peak
     """
     This method adapts a "crude" version of the peak-picking method for frequency identification by considering a pondering averaged with the PSD intensities around the PSD peak.
@@ -438,8 +439,8 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakP
             'figSizePeakPicking' is a tuple (width, height) and specifies the 
     verbose: bool, optional.
         Defines if verbose mode is on, so to print the results of the identification metho
-
-    Returns
+    textualResults: bool, optional
+        If True, returns a string containing a summary of the results of the method.
     -------    
     fig: matplotlib figure object.
     averagedFrequency: scalar
@@ -484,10 +485,16 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakP
 
     if plot['typeForPeakPicking'] != False: #Editted EMM-ARM 22/08/2022: 
         fig, ax = plt.subplots(1,1,figsize=plot['figSizePeakPicking'], dpi=plot['dpi'])
-        ax.semilogy(PSD.f,abs(PSD)[0][0], label="PSD")
-        ax.semilogy(PSD.f[rangeOfInterest],abs(PSD)[0][0][rangeOfInterest], label="Averaging range")
+        plt.close(fig)
+        #Plot PSD
+        ax.plot(PSD.f,abs(PSD)[0][0], label="PSD")
+        #Plot interval selected for averaging
+        ax.plot(PSD.f[rangeOfInterest],abs(PSD)[0][0][rangeOfInterest], label="Averaging range")
+        #Plot selected reference peak
         ax.scatter(PSD.f[PSDAveragedPeakIndex], abs(PSD)[0][0][PSDAveragedPeakIndex], c='r', marker='x', label="Selected frequency")
         ax.axvline(PSD.f[PSDAveragedPeakIndex], color = 'r', label = None)
+        #Plot half power bandwidth points
+        ax.scatter([fa,fb], [peakPSD/2,peakPSD/2], c='b', marker='.', zorder=10, label="Half-power points")
         ax.set_ylabel('Amplitude (g²/Hz)', size=plot['fontSize'], fontname=plot['fontName'])
         ax.set_xlabel('Frequency (Hz)', size=plot['fontSize'], fontname=plot['fontName'])
         #Define axis limits
@@ -502,13 +509,12 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakP
         
         ax.set_xlim(axis_f)
         ax.set_ylim([0.80*np.min([float(abs(PSD)[0][0][indexLowerAxis]),float(abs(PSD)[0][0][indexHigherAxis])]),abs(PSD)[0][0][yMaxPeakIndex]*1.2])
-        plt.legend()
-        axTemp = plt. gca() 
-        axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
-        axTemp.xaxis.set_minor_locator(MultipleLocator(5))
+        ax.legend(loc="upper right", fontsize=plot['fontSize'])
+        ax.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+        ax.xaxis.set_minor_locator(MultipleLocator(5))
         plt.tight_layout()
 
-    if verbose == True:
+    if verbose is True:
         print("=================================================================================")
         print("RESULTS FROM AVERAGED PEAK-PICKING METHOD")
         print("Peak selected as *reference* peak for the averaged peak-picking method:")
@@ -520,9 +526,21 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakP
         print("{:.3f} %".format(100*ksi_hp))
         print("END OF RESULTS FROM AVERAGED PEAK-PICKING METHOD")
         print("=================================================================================")
+    
+    if textualResults is True:
+        textualResultsString="Peak selected as *reference* peak for the averaged peak-picking method:\n"
+        textualResultsString+="{:.3f} Hz\n".format(PSD.f[yMaxPeakIndex])
+        textualResultsString+="Considering an interval around *reference* peak of {:.3f} Hz.\n".format(intervalForAveragingInHz)
+        textualResultsString+="Averaged peak-picking estimated frequency:\n"
+        textualResultsString+="{:.3f} Hz\n".format(averagedFrequency[0][0])
+        textualResultsString+="Half-power bandwidth damping:\n"
+        textualResultsString+="{:.3f} %\n".format(100*ksi_hp)
 
     #return PSDaveragedPeakIndex, averagedFrequency, yMaxPeakIndex
-    return fig, averagedFrequency, ksi_hp, PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex
+    if textualResults is True:
+        return fig, textualResultsString, averagedFrequency, ksi_hp, PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex 
+    else:
+        return fig, averagedFrequency, ksi_hp, PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex
 
 def solveCantileverTranscendentalEquation(initialGuess, vibrationFrequency, linearMass, freeLength, tipMass):
     """
@@ -629,6 +647,7 @@ def generateHeatMap(heatMapFilePath, saveFilePath, unitForAgeInPlot):
     with np.load(heatMapFilePath) as heatMapNPZ:
         heatMap=heatMapNPZ['arr_0']
     fig, ax = plt.subplots(figsize=(5,4))
+    plt.close(fig)
     ax.set_xscale('log')
     im=ax.pcolormesh(heatMap[0,1:]/ageConversionFactor,heatMap[1:,0],heatMap[1:,1:], norm=LogNorm())
     ax.set_xlim([0.01,heatMap[0,-1]/ageConversionFactor])

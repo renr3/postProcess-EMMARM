@@ -27,7 +27,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget_plotConfiguration">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_general">
       <attribute name="title">
@@ -357,7 +357,13 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>35</height>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>387</width>
+           <height>39</height>
           </size>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_23">
@@ -368,10 +374,10 @@
             </property>
            </widget>
           </item>
-          <item>
+          <item alignment="Qt::AlignLeft">
            <widget class="QComboBox" name="comboBox_plotType_PSD">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+             <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -380,6 +386,12 @@
              <size>
               <width>250</width>
               <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>250</width>
+              <height>22</height>
              </size>
             </property>
             <item>
@@ -449,11 +461,6 @@
             <item>
              <property name="text">
               <string>Standard</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>only_ANPSD</string>
              </property>
             </item>
             <item>
@@ -745,11 +752,6 @@
             <item>
              <property name="text">
               <string>True</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>False</string>
              </property>
             </item>
            </widget>

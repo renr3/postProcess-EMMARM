@@ -24,12 +24,19 @@ class MplWidget(QWidget):
         
         vertical_layout = QVBoxLayout()
         vertical_layout.addWidget(self.canvas)
+        vertical_layout.setContentsMargins(0,0,0,0)
         
         self.canvas.axes = self.canvas.figure.add_subplot(111)
+        self.canvas.axes.axis('off')
         self.canvas.draw()
         
         #Get the default font style from the system and apply to the canvas
-        self.resetFontStyle()
+        default_font = QFont()
+        default_font_info = QFontInfo(default_font)
+        self.system_font_family = default_font_info.family()
+        self.system_font_size = default_font_info.pointSize()
+        plt.rcParams.update({'font.family': self.system_font_family})
+        plt.rcParams.update({'font.size': self.system_font_size})
 
         self.setLayout(vertical_layout)
 
@@ -48,16 +55,18 @@ class MplWidget(QWidget):
         self.canvas.figure.set_size_inches(widget_width, widget_height)
         self.canvas.figure.set_dpi(original_dpi)
         self.canvas.figure.tight_layout()
-        self.resetFontStyle()
+        
+        #Set font
+        all_axes = []
+        for child in self.canvas.figure.get_children():
+            if isinstance(child, plt.Axes):
+                all_axes.append(child)
+        for ax in all_axes:
+            for item in [ax.xaxis.label, ax.yaxis.label, ax.title]:
+                item.set_fontfamily( self.system_font_family)
+                item.set_fontsize(self.system_font_size)
         #self.canvas.setMinimumSize(widget_width,widget_height)  # Adjust the scale factor as needed
 
         # Redraw the canvas
         self.canvas.draw()
-
-    def resetFontStyle(self):
-        default_font = QFont()
-        default_font_info = QFontInfo(default_font)
-        system_font_family = default_font_info.family()
-        system_font_size = default_font_info.pointSize()
-        plt.rcParams.update({'font.family': system_font_family})
-        plt.rcParams.update({'font.size': system_font_size})
+        plt.close('all')

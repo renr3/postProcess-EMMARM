@@ -3,25 +3,29 @@
 #PyQt6 and QTDesigner tutotiral: https://www.pythonguis.com/pyqt6/
 #Icons: the japanese guy
 
-from PyQt6 import QtWidgets, uic
+#General modules
 import sys
 import numpy as np
-import matplotlib
-matplotlib.use('QtAgg')
 
+#Modules for GUI
+from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import Qt
 from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QApplication, QWidget, QCheckBox, QFileDialog, QDialog
-
 from PyQt6.QtGui import QDoubleValidator, QIntValidator
 
+#Modules for plotting
+import matplotlib
+matplotlib.use('QtAgg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
+#Modules for modal analysis and EMM-AMR processing
+import CESSIPy_modRenan as SSI 
+from MRPy import MRPy #Library with modal analysis functions
 import auxFunctions_postProcessEMMARM as auxEMMARM #Library with auxiliary functions for EMM-ARM post processing
 
-
-
+#Temporary variable
 debugActivated=True
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -34,39 +38,39 @@ class MainWindow(QtWidgets.QMainWindow):
 
         #Define global properties with default values
         #These values may be used as reference for validating user inputs
-        self.pathForFile=None
+        self.pathForFile=r'D:/Users/renan/OneDrive/Renan/Engenharia Civil/Ensaios/230713-EMMARM-AC_0_4/02-UEMMARM/2/0003.emm'
         self.selectedFileType = ('uEMMARM files', '*.emm')
         self.selectedFileExtension = self.selectedFileType[1][-5:]
         
         self.selectedSystem='uEMMARM'
         self.selectedProcessing='singleFile'
         self.desiredChannel = 1
-        self.calibrationFactor = 2400
+        self.calibrationFactor = 1.0/2400.0
         self.samplingFrequencyOriginal = 860
         self.filterConfiguration = []
-        self.nps = None
+        self.nps = 4096
         self.modalIdentificationMethodToPerform = {'peak-picking':False, 
                                             'BFD':False, 
                                             'EFDD':False, 
                                             'SSI-COV':False}
         #Peak-picking properties
-        self.intervalForAveragingHz=None
+        self.intervalForAveragingHz=5
         #BFD properties
-        self.fint_BFD = [None,None]
+        self.fint_BFD = [0.8,1.2]
         #EFDD properties
-        self.fint_EFDD = [None, None]
-        self.tint = np.array([None, None])
+        self.fint_EFDD = [0.8, 1.2]
+        self.tint = np.array([0, 0.2])
         #SSI-COV properties
-        self.numModesToBeConsidered = None
-        self.i = None
-        self.startingOrderNumber = None
-        self.endOrderNumber = None
-        self.incrementBetweenOrder = None
+        self.numModesToBeConsidered = 3
+        self.i = 60
+        self.startingOrderNumber = 2
+        self.endOrderNumber = 60
+        self.incrementBetweenOrder = 1
         self.refs = [0]
         self.tol =  np.array((
-                    [None,None,None],     # [allowed_variation, lower_bound, higher_bound]: limits for eigenfrequencies
-                    [None,None,None],     # [allowed_variation, lower_bound, higher_bound]: limits for damping ratios
-                    [None,None,None]))    # [allowed_variation, lower_bound, higher_bound]: limits for MAC
+                    [0.01,8,150],     # [allowed_variation, lower_bound, higher_bound]: limits for eigenfrequencies
+                    [0.1,0.001,0.025],     # [allowed_variation, lower_bound, higher_bound]: limits for damping ratios
+                    [0.02,0,1]))    # [allowed_variation, lower_bound, higher_bound]: limits for MAC
         
         #Define and initialize default values in plot configuration variable
         self.plotGeneral = None
@@ -78,6 +82,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plotSSI=None
         self.plotConfiguration = None
         self.populate_plotConfiguration(firstInitialization=True)
+
+        #Disable all graphical tabs but the first (time series and PSD)
+        for tabIndex in np.arange(1,self.tabWidget_graphicalPanel.count()):
+            self.tabWidget_graphicalPanel.setTabVisible(tabIndex,False)
 
         #Define validators
         self.lineEdit_accelConvFactor.setValidator(QDoubleValidator())
@@ -208,7 +216,7 @@ class MainWindow(QtWidgets.QMainWindow):
         print(self.desiredChannel) if debugActivated else None
     def update_calibrationFactor(self, new_value):
         try:
-            self.calibrationFactor=float(new_value)
+            self.calibrationFactor=1.0/float(new_value)
         except Exception as e:
             None
         print(self.calibrationFactor) if debugActivated else None   
@@ -245,7 +253,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.pathForFile = selected_folder_path
                 self.lineEdit_filePath.setText(selected_folder_path)
                 print(self.pathForFile) if debugActivated else None  
-    
+
     ##Filtering panel
     #Detrend groupbox
     def update_activateDetrendFilter(self, state):
@@ -342,6 +350,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if filter.get('filter') == 'decimation':
                 filter['decimationFactor'] = int(new_value)
         print(self.filterConfiguration) if debugActivated else None
+    
     ##Modal analysis methods panel
     #PSD groupbox
     def update_windowLengthPSD(self,new_value):
@@ -361,7 +370,9 @@ class MainWindow(QtWidgets.QMainWindow):
                     if widget.text() != 'Activate':
                         widget.setEnabled(True)
                 else:
-                    widget.setEnabled(True)        
+                    widget.setEnabled(True)
+            self.tabWidget_graphicalPanel.setTabVisible(1,True)
+            #Then, we need to enable the corresponding graphic tab
             #Make peak-picking active in the self.modalIdentificationMethodToPerform dict
             self.modalIdentificationMethodToPerform['peak-picking']=True
             self.intervalForAveragingHz=self.try_float(self.lineEdit_averagingInterval_PP.text())
@@ -377,6 +388,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         widget.setEnabled(False)
                 else:
                     widget.setEnabled(False)
+            self.tabWidget_graphicalPanel.setTabVisible(1,False)
             print("Peak-Picking is unchecked") if debugActivated else None
         print("Modal identification dict:",self.modalIdentificationMethodToPerform,"\nPeak-picking variables: ",self.intervalForAveragingHz) if debugActivated else None
     def update_intervalForAveragingHz(self,new_value):
@@ -397,9 +409,10 @@ class MainWindow(QtWidgets.QMainWindow):
                         widget.setEnabled(True)
                 else:
                     widget.setEnabled(True)        
+            self.tabWidget_graphicalPanel.setTabVisible(2,True)
             #Make BFD active in the self.modalIdentificationMethodToPerform dict
             self.modalIdentificationMethodToPerform['BFD']=True
-            self.fint_BFD=[self.try_float(self.lineEdit_curveFittingFrequencyLowerBound_BFD.text()),self.try_float(self.lineEdit_curveFittingFrequencyUpperBound_BFD.text())]
+            self.fint_BFD=[self.try_float(self.lineEdit_curveFittingFrequencyLowerBound_BFD.text())/100.0,self.try_float(self.lineEdit_curveFittingFrequencyUpperBound_BFD.text())/100.0]
             print("BFD is checked") if debugActivated else None
         else:
             #If the checkBox is unchecked, then we need to update the self.modalIdentificationMethodToPerform dict
@@ -412,18 +425,19 @@ class MainWindow(QtWidgets.QMainWindow):
                         widget.setEnabled(False)
                 else:
                     widget.setEnabled(False)
+            self.tabWidget_graphicalPanel.setTabVisible(2,False)
             print("BFD is unchecked") if debugActivated else None
         print("Modal identification dict:",self.modalIdentificationMethodToPerform,"\nBFD variables: ",self.fint_BFD) if debugActivated else None
     def update_lower_fint_BFD(self,new_value):
         try:
-            self.fint_BFD[0]=self.try_float(new_value)
+            self.fint_BFD[0]=self.try_float(new_value)/100.0
         except Exception as e:
             #Expection to deal with when the field is empty
             self.fint_BFD[0]=None
         print("fint_BFD:",self.fint_BFD) if debugActivated else None
     def update_upper_fint_BFD(self,new_value):
         try:
-            self.fint_BFD[1]=self.try_float(new_value)
+            self.fint_BFD[1]=self.try_float(new_value)/100.0
         except Exception as e:
             #Expection to deal with when the field is empty
             self.fint_BFD[1]=None
@@ -439,17 +453,18 @@ class MainWindow(QtWidgets.QMainWindow):
                         widget.setEnabled(True)
                 else:
                     widget.setEnabled(True)        
+            self.tabWidget_graphicalPanel.setTabVisible(3,True)
             #Make EFDD active in the self.modalIdentificationMethodToPerform dict
             self.modalIdentificationMethodToPerform['EFDD']=True
             #Fetch parameters
-            self.fint_EFDD=[self.try_float(self.lineEdit_curveFittingFrequencyLowerBound_EFDD.text()),self.try_float(self.lineEdit_curveFittingFrequencyUpperBound_EFDD.text())]
-            self.tint=[self.try_float(self.lineEdit_curveFittingTimeLowerBound_EFDD.text()),self.try_float(self.lineEdit_curveFittingTimeUpperBound_EFDD.text())]
+            self.fint_EFDD=[self.try_float(self.lineEdit_curveFittingFrequencyLowerBound_EFDD.text())/100.0,self.try_float(self.lineEdit_curveFittingFrequencyUpperBound_EFDD.text())/100.0]
+            self.tint= np.array([self.try_float(self.lineEdit_curveFittingTimeLowerBound_EFDD.text()),self.try_float(self.lineEdit_curveFittingTimeUpperBound_EFDD.text())])
             print("EFDD is checked") if debugActivated else None
         else:
             #If the checkBox is unchecked, then we need to update the self.modalIdentificationMethodToPerform dict
             self.modalIdentificationMethodToPerform['EFDD']=False
             self.fint_EFDD=[None,None]
-            self.tint=[None,None]
+            self.tint= np.array([None,None])
             #And we need to deactivate the control
             for widget in self.groupBox_EFDD.findChildren(QWidget):
                 if isinstance(widget, QCheckBox):
@@ -457,18 +472,19 @@ class MainWindow(QtWidgets.QMainWindow):
                         widget.setEnabled(False)
                 else:
                     widget.setEnabled(False)
+            self.tabWidget_graphicalPanel.setTabVisible(3,False)
             print("EFDD is unchecked") if debugActivated else None
         print("Modal identification dict:",self.modalIdentificationMethodToPerform,"\nEFDD variables: fint",self.fint_EFDD, ", tint", self.tint) if debugActivated else None
     def update_lower_fint_EFDD(self,new_value):
         try:
-            self.fint_EFDD[0]=self.try_float(new_value)
+            self.fint_EFDD[0]=self.try_float(new_value)/100.0
         except Exception as e:
             #Expection to deal with when the field is empty
             self.fint_EFDD[0]=None
         print("fint_EFDD:",self.fint_EFDD) if debugActivated else None
     def update_upper_fint_EFDD(self,new_value):
         try:
-            self.fint_EFDD[1]=self.try_float(new_value)
+            self.fint_EFDD[1]=self.try_float(new_value)/100.0
         except Exception as e:
             #Expection to deal with when the field is empty
             self.fint_EFDD[1]=None
@@ -498,6 +514,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         widget.setEnabled(True)
                 else:
                     widget.setEnabled(True)        
+            self.tabWidget_graphicalPanel.setTabVisible(4,True)
             #Make SSI active in the self.modalIdentificationMethodToPerform dict
             self.modalIdentificationMethodToPerform['SSI-COV']=True
             #Fetch parameters
@@ -506,12 +523,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.startingOrderNumber = self.spinBox_startingModelOrder_SSI.value()
             self.endOrderNumber = self.spinBox_endingModelOrder_SSI.value()
             self.incrementBetweenOrder = self.spinBox_orderIncrement_SSI.value()
-            self.tol[0][0] = self.try_float(self.lineEdit_stabTolFrequency_allowedVariation_SSI.text()) 
+            self.tol[0][0] = self.try_float(self.lineEdit_stabTolFrequency_allowedVariation_SSI.text())/100.0 
             self.tol[0][1] = self.try_float(self.lineEdit_stabTolFrequency_lowerBound_SSI.text()) 
             self.tol[0][2] = self.try_float(self.lineEdit_stabTolFrequency_upperBound_SSI.text()) 
-            self.tol[1][0] = self.try_float(self.lineEdit_stabTolDamping_allowedVariation_SSI.text()) 
-            self.tol[1][1] = self.try_float(self.lineEdit_stabTolDamping_lowerBound_SSI.text()) 
-            self.tol[1][2] = self.try_float(self.lineEdit_stabTolDamping_upperBound_SSI.text()) 
+            self.tol[1][0] = self.try_float(self.lineEdit_stabTolDamping_allowedVariation_SSI.text())/100.0 
+            self.tol[1][1] = self.try_float(self.lineEdit_stabTolDamping_lowerBound_SSI.text())/100.0 
+            self.tol[1][2] = self.try_float(self.lineEdit_stabTolDamping_upperBound_SSI.text())/100.0 
             print("SSI-COV is checked") if debugActivated else None
         else:
             #If the checkBox is unchecked, then we need to update the self.modalIdentificationMethodToPerform dict
@@ -533,6 +550,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         widget.setEnabled(False)
                 else:
                     widget.setEnabled(False)
+            self.tabWidget_graphicalPanel.setTabVisible(4,False)
             print("SSI-COV is unchecked") if debugActivated else None
         print("Modal identification dict:",self.modalIdentificationMethodToPerform,
               "\nSSI-COV variables:",
@@ -600,6 +618,123 @@ class MainWindow(QtWidgets.QMainWindow):
             self.tol[1][2]=None
         print("tol:",self.tol) if debugActivated else None
     
+    ##Run analysis
+    def runAnalysis(self):
+        #Perform the competent analysis
+        if self.selectedProcessing == 'singleFile': 
+            #Initial processing common to any modal analysis method selected
+            accelerationDigital = auxEMMARM.readSingleFile(self.pathForFile, self.selectedSystem,self. desiredChannel)
+            acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
+            accelerationFiltered, samplingFrequencyFiltered  = auxEMMARM.filtering(acceleration, self.samplingFrequencyOriginal, self.filterConfiguration)
+            yk = MRPy(accelerationFiltered,fs=samplingFrequencyFiltered)
+            self.figurePSD, PSD = SSI.SDM(yk, nperseg=self.nps, plot=self.plotConfiguration, window='hann', nfft=2*self.nps)
+            
+            #Peak picking method
+            if self.modalIdentificationMethodToPerform['peak-picking']==True:
+                self.figurePP, self.textualResult_PP, FPP, ZPP_HP, PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex=auxEMMARM.averagedPeakPickingMethod(PSD, self.intervalForAveragingHz, plot=self.plotConfiguration, verbose=False, textualResults=True)
+            else:
+                figIgnore, FPP, ZPP_HP, ignoreThis, PSDAveragedPeakIndex, ignoreThis=auxEMMARM.averagedPeakPickingMethod(PSD, self.intervalForAveragingHz, plot=self.plotConfiguration, verbose=False)
+            
+            #Build PSD object manually
+            PSD.pki  = np.array([PSDAveragedPeakIndex], dtype=int)
+            PSD.MGi  = np.array([0], dtype=int)
+            PSD.svi  = np.array([0], dtype=int)
+            PSD.tint = self.tint
+            self.figureANPSD, PSD = SSI.ANPSD_from_SDM(PSD,plot=self.plotConfiguration, mode="batch")
+            
+            #BFD method
+            PSD.fint = np.array([self.fint_BFD[0]*FPP, self.fint_BFD[1]*FPP])
+            if self.modalIdentificationMethodToPerform['BFD']==True:
+                self.figureBFD, FBFD, ZBFD_FT, VBFD, PSD_BFD = SSI.BFD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False)
+
+            #EFDD method
+            PSD.fint = np.array([self.fint_EFDD[0]*FPP, self.fint_EFDD[1]*FPP])
+            if self.modalIdentificationMethodToPerform['EFDD']==True:
+                self.figureEFDD, self.figureAutc, FEFDD, ZEFDD, VEFDD, PSD_EFDD = SSI.EFDD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False)
+
+            #SSI method
+            if self.modalIdentificationMethodToPerform['SSI-COV']==True:
+                yk = SSI.rearrange_data(yk,self.refs) 
+
+                ##5.2) SSI_COV_ITERATOR
+                ###DESCRIPTION: SSI_COV_iterator estimates eigenfrequencies, damping ratios, and mode shape for each model order specified in the algorithm (starting at startingOrderNumber, finishing at endOrderNumber, each incrementBetweenOrder)
+                ###VARIABLE DESCRIPTION:
+                #FSSI_MODEL holds all eigenfrequencies of all models
+                #ZSSI_MODEL holds all damping ratios of all models
+                #VSSI_MODEL holds all mode shapes of all models
+                FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL = SSI.SSI_COV_iterator(yk,self.i,self.startingOrderNumber, self.endOrderNumber, self.incrementBetweenOrder, plot=False)
+                
+                ##5.3) STABILIZATION_DIAGRAM
+                ###DESCRIPTION: stabilization_diagram will apply the stabilization diagram method on the models obtained previously, classifiying each eigenvalue as "new pole", "stable frequency", "stable frequency and damping", "stable frequency, damping and mode shape". This last class of poles are those considered stables.
+                ###VARIABLE DESCRIPTION:
+                #stbC is a ndaray containing False or True for all poles considered stable, for every model order.
+                self.figureSSI, stableModes = SSI.stabilization_diagram(FSSI_MODEL,ZSSI_MODEL,VSSI_MODEL, tol=self.tol, plot=self.plotConfiguration, PSD=PSD, verbose=False)
+
+                ##5.4) SIMPLIFIED CLUSTER ANALYSIS
+                ###5.4.1) CLUSTERIZE MODES
+                ###DESCRIPTION: simplified cluster analysis, which will gather close modes together based on the tolerance settings 
+                ###VARIABLE DESCRIPTION:
+                #FSSI is a ndarray that contains all the frequencies associated to each model
+                #ZSSI is a ndarray that contains all the dampings associated to each model
+                #VSSI is a ndarray that contains all the mode shapes associated to each model
+                #numStablePoles is a ndarray that contains the number of stable poles associated to each clusterized stable pole
+                FSSI, ZSSI, VSSI, numStablePoles = SSI.stable_modes(FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL, stableModes, tol=0.01, spo=10, verbose=False)
+                ###5.4.2) ORGANIZE THE RESULTS
+                ###DESCRIPTION: the previous function was implemented for the general purpose of CESSI.py library. This will organize the results for EMM-ARM purpose
+                FSSI_CLUSTER=np.zeros(self.numModesToBeConsidered)
+                ZSSI_CLUSTER=np.zeros(self.numModesToBeConsidered)
+                numStablePoles_CLUSTER=np.zeros(self.numModesToBeConsidered)
+                eigenfrequenciesIndices = np.flip(np.argsort(numStablePoles))
+                
+                if FSSI.size == 0:
+                    print('No sufficiently large frequency clusters could be identified') 
+                else:
+                    for r, l in enumerate(np.take_along_axis(FSSI, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): FSSI_CLUSTER[r]=l
+
+                if ZSSI.size == 0:
+                    print('No sufficiently large damping clusters could be identified') 
+                else:
+                    for r, l in enumerate(np.take_along_axis(ZSSI, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): ZSSI_CLUSTER[r]=100*l
+                
+                if numStablePoles.size == 0:
+                    print('No sufficiently large clusters could be identified') 
+                else:
+                    for r, l in enumerate(np.take_along_axis(numStablePoles, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): numStablePoles_CLUSTER[r]=int(l)
+
+            #Display time series and PSD
+            self.figureTimeSeriesRaw=auxEMMARM.plotAccelerationTimeSeries([[acceleration,self.samplingFrequencyOriginal,'Original'],], plot=self.plotConfiguration)
+            self.graph_timeSeriesRaw.update_figure(self.figureTimeSeriesRaw)
+            self.figureTimeSeriesFiltered=auxEMMARM.plotAccelerationTimeSeries([[accelerationFiltered,samplingFrequencyFiltered,'Filtered'],], plot=self.plotConfiguration)
+            self.graph_timeSeriesFiltered.update_figure(self.figureTimeSeriesFiltered)
+            self.graph_PSD.update_figure(self.figurePSD)
+
+            #Display peak-picking method
+            if (self.plotConfiguration['typeForPeakPicking']==True) and (self.modalIdentificationMethodToPerform['peak-picking']==True):
+                self.graph_PP.update_figure(self.figurePP)
+                self.graph_NPSD.update_figure(self.figureANPSD)
+                self.textBrowser_results_PP.setText(self.textualResult_PP)
+            
+            #Display BFD method
+            if (self.plotConfiguration['typeForBFD']==True) and (self.modalIdentificationMethodToPerform['BFD']==True):
+                self.graph_BFD.update_figure(self.figureBFD)
+
+            #Display EFDD method
+            if (self.plotConfiguration['typeForEFDD']=="Autocorrelation-SVD") and (self.modalIdentificationMethodToPerform['EFDD']==True):
+                self.graph_spectraEFDD.update_figure(self.figureEFDD)
+                self.graph_autcEFDD.update_figure(self.figureAutc)
+            
+            #Display SSI method
+            if (self.plotConfiguration['typeForEFDD-AutocorrelationFitting'] is not False) and (self.modalIdentificationMethodToPerform['SSI-COV']==True):
+                self.graph_SSI.update_figure(self.figureSSI)
+
+    #Function to validate inputs
+    def validateInputs (self):
+        #Validate an acceleration conversion factor was inserted
+        #Validate a sampling frequency was informed
+        #Validate the inputs of butterworth filter
+        None
+
+    #Complementary functions
     ##Plot configuration dialog
     def openPlotConfigurationDialog(self, tab=0):
         print(tab)
@@ -610,24 +745,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plotConfiguration=dlg_plotConfiguration.plotConfiguration
         print("Plot configuration dialog exit.\n",self.plotConfiguration) if debugActivated else None
 
-    ##Run analysis
-    def runAnalysis(self):
-       # Create a Matplotlib Figure and Axes
-        accelerationDigital = auxEMMARM.readSingleFile(self.pathForFile, self.selectedSystem,self. desiredChannel)
-        acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
-        accelerationFiltered, samplingFrequencyFiltered  = auxEMMARM.filtering(acceleration, self.samplingFrequencyOriginal, self.filterConfiguration)
-        fig=auxEMMARM.plotAccelerationTimeSeries([[acceleration,self.samplingFrequencyOriginal,'Original'],], plot=self.plotConfiguration)
-        self.graph_timeSeries.update_figure(fig)
-        
-
-    #Function to validate inputs
-    def validateInputs (self):
-        #Validate an acceleration conversion factor was inserted
-        #Validate a sampling frequency was informed
-        #Validate the inputs of butterworth filter
-        None
-
-    #Complementary functions
     def populate_plotConfiguration (self, firstInitialization=False):
         if firstInitialization is True:
             self.plotGeneral = {'frequencyBandOfInterest': [0,250], 'fontSize': 10, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150,'lowerYFactorPlotPSD': 0.8, 'upperYFactorPlotPSD': 1.2}
@@ -735,10 +852,8 @@ class plotConfigDlg(QDialog):
                 valueSelected = self.comboBox_plotType_PP.currentText()
                 if valueSelected == 'Standard':
                     self.plotPeakPicking['typeForPeakPicking'] = True
-                    self.plotNPSD['typeForANPSD'] = False
-                elif valueSelected == 'only_ANPSD':
-                    self.plotPeakPicking['typeForPeakPicking'] = False
-                    self.plotNPSD['typeForANPSD'] = True
+                    self.plotNPSD['typeForANPSD'] = 'only_ANPSD'
+
                 elif valueSelected == 'No plot':
                     self.plotPeakPicking['typeForPeakPicking'] = False
                     self.plotNPSD['typeForANPSD'] = False
@@ -815,7 +930,7 @@ class plotConfigDlg(QDialog):
         if firstInitialization is True:
             self.plotGeneral = {'frequencyBandOfInterest':[0,250], 'fontSize':10, 'fontName':'Segoe UI', 'figSize':[5,2], 'dpi':150,'lowerYFactorPlotPSD':0.8, 'upperYFactorPlotPSD':1.2}
             self.plotPSD = {'typeForPSD': 'Single_PSD'} #The only option currently supported
-            self.plotNPSD = {'typeForANPSD':None,'figSizeANPSD': self.plotGeneral['figSize']} #The only option currently supported
+            self.plotNPSD = {'typeForANPSD':'only_ANPSD','figSizeANPSD': self.plotGeneral['figSize']} #The only option currently supported
             self.plotPeakPicking={'typeForPeakPicking':True,'figSizePeakPicking':[5,5]}
             self.plotBFD={'typeForBFD':True, 'figSizeBFD':[5,5]}
             self.plotEFDD={'typeForEFDD-AutocorrelationFitting': True,'typeForEFDD':'Autocorrelation-SVD','figSizeEFDD':[5,5]} #'typeForEFDD': 'Autocorrelation-SVD' is the only option currently supported option
@@ -841,6 +956,7 @@ class plotConfigDlg(QDialog):
             return None
 def main():
     app = QtWidgets.QApplication(sys.argv)
+
     main = MainWindow()
     main.show()
     sys.exit(app.exec())
