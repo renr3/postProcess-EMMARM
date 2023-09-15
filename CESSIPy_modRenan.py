@@ -708,7 +708,7 @@ def stabilization_diagram(FN, ZT, VV,
         fig = None
     elif plot['typeForStabilizationDiagram']=='StabilizationOnly':  
         #Plot stabilization diagram
-        plt.figure(figsize=plot['figSizeStabilization'], dpi=plot['dpi'])
+        fig, ax = plt.subplots(figsize=plot['figSizeStabilization'], dpi=plot['dpi'])
         plt.close(fig)
         ax = fig.add_subplot(111)
         for ii in range(n.shape[0]): 

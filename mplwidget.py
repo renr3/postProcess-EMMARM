@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 
 import matplotlib
 matplotlib.use('Qt5Agg')
+
+import copy
     
 class MplWidget(QWidget):
     
@@ -49,7 +51,7 @@ class MplWidget(QWidget):
         self.canvas.axes.cla()
 
         # Copy the contents of the new figure onto the canvas
-        self.canvas.figure = new_figure
+        self.canvas.figure = copy.deepcopy(new_figure)
 
         # Set the size of the new figure based on the widget's size
         self.canvas.figure.set_size_inches(widget_width, widget_height)
