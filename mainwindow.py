@@ -1422,6 +1422,10 @@ class plotConfigDlg(QDialog):
             return float(v)
         except Exception:
             return None
+
+
+
+
 def main():
     app = QtWidgets.QApplication(sys.argv)
 
