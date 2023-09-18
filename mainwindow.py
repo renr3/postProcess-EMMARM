@@ -5,7 +5,9 @@
 
 #General modules
 import sys
+import datetime
 import numpy as np
+import traceback
 
 #Module to deal with files from the system
 import os
@@ -40,7 +42,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         #Load the UI Page
         uic.loadUi(r'GUI/mainwindow.ui', self)
-
+        
         #Define global properties with default values
         #These values may be used as reference for validating user inputs
         self.pathForFile=r'D:/Users/renan/OneDrive/Renan/Engenharia Civil/Ensaios/230713-EMMARM-AC_0_4/02-UEMMARM/2/0003.emm'
@@ -89,6 +91,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plotSSI=None
         self.plotConfiguration = None
         self.populate_plotConfiguration(firstInitialization=True)
+
+        #Define the runtime configuration
+        self.currentAnalysisConfiguration={}
+        self.updateCurrentAnalysisConfiguration()
+
+        #Update display values in the GUI with the current values of the parameters
+        self.updateGUIDisplayValues()
 
         #Disable all graphical tabs but the first (time series and PSD)
         for tabIndex in np.arange(1,self.tabWidget_graphicalPanel.count()):
@@ -187,17 +196,40 @@ class MainWindow(QtWidgets.QMainWindow):
         ##Run analysis
         self.pushButton_runAnalysis.clicked.connect(self.runAnalysis)
 
-        ##Frequency evolution
+        ##Frequency evolution tab
         self.pushButton_openFilePathFrequencyEvolution.clicked.connect(self.openFrequencyEvolutionPathDialog)
         self.lineEdit_filePathFrequencyEvolution.textChanged.connect(self.updateFrequencyEvolutionPath)
         self.toolButton_exportFrequencyEvolution.clicked.connect(self.exportFrequencyEvolution)
 
-        ##Damping evolution
+        ##Damping evolution tab
         self.pushButton_openFilePathDampingEvolution.clicked.connect(self.openDampingEvolutionPathDialog)
         self.lineEdit_filePathDampingEvolution.textChanged.connect(self.updateDampingEvolutionPath)
         self.toolButton_exportDampingEvolution.clicked.connect(self.exportDampingEvolution)
 
+        ##Menu bar
+        self.action_exportAnalysisConfiguration.triggered.connect(self.exportAnalysisConfiguration)
+        self.action_importAnalysisConfiguration.triggered.connect(self.importAnalysisConfiguration)
+
     #Definition of methods to perform with the signals
+    ##Menu par
+    def exportAnalysisConfiguration(self,s):
+        #Create a QFileDialog instance
+        file_dialog = QFileDialog(self)
+        selected_file_path, selected_filter = file_dialog.getSaveFileName(self, "Enter name", "", "Text file (*.txt)")
+        self.updateCurrentAnalysisConfiguration()
+        import json
+        with open(selected_file_path, 'w') as file:
+            json.dump(self.currentAnalysisConfiguration, file)  # encode dict into JSON
+    def importAnalysisConfiguration(self,s):
+        #Create a QFileDialog instance
+        file_dialog = QFileDialog(self)
+        selected_file_path, selected_filter = file_dialog.getOpenFileName(self, "Enter name", "", "Text file (*.txt)")
+        import json
+        with open(selected_file_path, 'r') as file:
+            self.currentAnalysisConfiguration=json.load(file)  # encode dict into JSON
+        self.readCurrentAnalysisConfiguration()
+        self.updateGUIDisplayValues()
+
     ##General info panel
     def update_pathForFile(self, new_value):
         #Only updates if new_value is different than current value
@@ -306,7 +338,60 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.comboBox_fileVisualized.clear()
                 self.comboBox_fileVisualized.addItems(self.filesToRead)
                 self.comboBox_fileVisualized.setCurrentIndex(0)
-    
+    def updateCurrentAnalysisConfiguration(self):
+        self.currentAnalysisConfiguration['pathForFIle']=self.pathForFile
+        self.currentAnalysisConfiguration['fileVisualizedPath']=self.fileVisualizedPath
+        self.currentAnalysisConfiguration['filesToRead']=self.filesToRead
+        self.currentAnalysisConfiguration['selectedFileType']=self.selectedFileType
+        self.currentAnalysisConfiguration['selectedFileExtension']=self.selectedFileExtension        
+        self.currentAnalysisConfiguration['selectedSystem']=self.selectedSystem
+        self.currentAnalysisConfiguration['selectedProcessing']=self.selectedProcessing
+        self.currentAnalysisConfiguration['desiredChannel']=self.desiredChannel
+        self.currentAnalysisConfiguration['calibrationFactor']=self.calibrationFactor
+        self.currentAnalysisConfiguration['samplingFrequencyOriginal']=self.samplingFrequencyOriginal
+        self.currentAnalysisConfiguration['filterConfiguration']=self.filterConfiguration
+        self.currentAnalysisConfiguration['nps']=self.nps
+        self.currentAnalysisConfiguration['modalIdentificationMethodToPerform']=self.modalIdentificationMethodToPerform
+        self.currentAnalysisConfiguration['intervalForAveragingHz']=self.intervalForAveragingHz
+        self.currentAnalysisConfiguration['fint_BFD']=self.fint_BFD
+        self.currentAnalysisConfiguration['fint_EFDD']=self.fint_EFDD
+        self.currentAnalysisConfiguration['tint']=self.tint.tolist()
+        self.currentAnalysisConfiguration['numModesToBeConsidered']=self.numModesToBeConsidered
+        self.currentAnalysisConfiguration['i']=self.i
+        self.currentAnalysisConfiguration['startingOrderNumber']=self.startingOrderNumber
+        self.currentAnalysisConfiguration['endOrderNumber']=self.endOrderNumber
+        self.currentAnalysisConfiguration['incrementBetweenOrder']=self.incrementBetweenOrder
+        self.currentAnalysisConfiguration['refs']=self.refs
+        self.currentAnalysisConfiguration['tol']=self.tol.tolist()
+        self.currentAnalysisConfiguration['plotConfiguration']=self.plotConfiguration
+    def readCurrentAnalysisConfiguration(self):
+        self.pathForFile=self.currentAnalysisConfiguration['pathForFIle']
+        self.fileVisualizedPath=self.currentAnalysisConfiguration['fileVisualizedPath']
+        self.filesToRead=self.currentAnalysisConfiguration['filesToRead']
+        self.selectedFileType=self.currentAnalysisConfiguration['selectedFileType']
+        self.selectedFileExtension=self.currentAnalysisConfiguration['selectedFileExtension']
+        self.selectedSystem=self.currentAnalysisConfiguration['selectedSystem']
+        self.selectedProcessing=self.currentAnalysisConfiguration['selectedProcessing']
+        self.desiredChannel=self.currentAnalysisConfiguration['desiredChannel']
+        self.calibrationFactor=self.currentAnalysisConfiguration['calibrationFactor']
+        self.samplingFrequencyOriginal=self.currentAnalysisConfiguration['samplingFrequencyOriginal']
+        self.filterConfiguration=self.currentAnalysisConfiguration['filterConfiguration']
+        self.nps=self.currentAnalysisConfiguration['nps']
+        self.modalIdentificationMethodToPerform=self.currentAnalysisConfiguration['modalIdentificationMethodToPerform']
+        self.intervalForAveragingHz=self.currentAnalysisConfiguration['intervalForAveragingHz']
+        self.fint_BFD=self.currentAnalysisConfiguration['fint_BFD']
+        self.fint_EFDD=self.currentAnalysisConfiguration['fint_EFDD']
+        self.tint=np.array(self.currentAnalysisConfiguration['tint'])
+        self.numModesToBeConsidered=self.currentAnalysisConfiguration['numModesToBeConsidered']
+        self.i=self.currentAnalysisConfiguration['i']
+        self.startingOrderNumber=self.currentAnalysisConfiguration['startingOrderNumber']
+        self.endOrderNumber=self.currentAnalysisConfiguration['endOrderNumber']
+        self.incrementBetweenOrder=self.currentAnalysisConfiguration['incrementBetweenOrder']
+        self.refs=self.currentAnalysisConfiguration['refs']
+        self.tol=np.array(self.currentAnalysisConfiguration['tol'])
+        self.plotConfiguration=self.currentAnalysisConfiguration['plotConfiguration']
+
+    ##Frequency and Damping panel
     def openFrequencyEvolutionPathDialog(self):
         #Create a QFileDialog instance
         file_dialog = QFileDialog(self)
@@ -316,13 +401,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.pathForFile = selected_folder_path
             self.lineEdit_filePathFrequencyEvolution.setText(selected_folder_path)
             print(self.pathForFile) if debugActivated else None 
-    
     def updateFrequencyEvolutionPath(self, new_value):
         if os.path.exists(new_value):
             self.toolButton_exportFrequencyEvolution.setEnabled(True)
         else:
             self.toolButton_exportFrequencyEvolution.setEnabled(False)
-
     def exportFrequencyEvolution(self):
         saveFilePrefix=self.lineEdit_filePathFrequencyEvolution.text()+'/'+self.lineEdit_fileNameFrequencyEvolution.text()
         if self.modalIdentificationMethodToPerform['peak-picking']==True:
@@ -334,7 +417,6 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.modalIdentificationMethodToPerform['SSI-COV']==True:
             np.savetxt(saveFilePrefix+'_Frequency_SSI.txt', np.vstack((self.agesOfMeasurementOriginal, self.FSSI_CLUSTER.T)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(DAYS)\tFREQUENCIES(Hz)")
             np.savetxt(saveFilePrefix+'_numPoles_SSI.txt', np.vstack((self.agesOfMeasurementOriginal, self.numStablePoles_CLUSTER.T)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(DAYS)\tNUMBER POLES(counts)")  
-    
     def openDampingEvolutionPathDialog(self):
         #Create a QFileDialog instance
         file_dialog = QFileDialog(self)
@@ -344,13 +426,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.pathForFile = selected_folder_path
             self.lineEdit_filePathDampingEvolution.setText(selected_folder_path)
             print(self.pathForFile) if debugActivated else None 
-    
     def updateDampingEvolutionPath(self, new_value):
         if os.path.exists(new_value):
             self.toolButton_exportDampingEvolution.setEnabled(True)
         else:
             self.toolButton_exportDampingEvolution.setEnabled(False)
-
     def exportDampingEvolution(self):
         saveFilePrefix=self.lineEdit_filePathDampingEvolution.text()+'/'+self.lineEdit_fileNameDampingEvolution.text()
         if self.modalIdentificationMethodToPerform['peak-picking']==True:
@@ -748,258 +828,261 @@ class MainWindow(QtWidgets.QMainWindow):
         updatePlotInBatchAnalysis: bool
             This variable is used in the context of the "Update plot" button in Batch Analysis
         '''
-        #Perform the competent analysis
-        if self.selectedProcessing == 'singleFile' or (updatePlotInBatchAnalysis is True): 
-            #Initial processing common to any modal analysis method selected
-            #Check if this call is in a single file analysis, or the update of graphs in batch analysis
-            if updatePlotInBatchAnalysis is False:
-                accelerationDigital = auxEMMARM.readSingleFile(self.pathForFile, self.selectedSystem,self. desiredChannel)
-                acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
-                if self.selectedSystem == 'uEMMARM':
-                    folderPath = "/".join(self.pathForFile.split('/')[:-1])+"/"
-                    files = self.pathForFile.split('/')[-1]
-                    self.samplingFrequencyOriginal = auxEMMARM.getSamplingFrequency_uEMMARM(folderPath, files, len(acceleration))
+        try:
+            #Perform the competent analysis
+            if self.selectedProcessing == 'singleFile' or (updatePlotInBatchAnalysis is True): 
+                #Initial processing common to any modal analysis method selected
+                #Check if this call is in a single file analysis, or the update of graphs in batch analysis
+                if updatePlotInBatchAnalysis is False:
+                    accelerationDigital = auxEMMARM.readSingleFile(self.pathForFile, self.selectedSystem,self. desiredChannel)
+                    acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
+                    if self.selectedSystem == 'uEMMARM':
+                        folderPath = "/".join(self.pathForFile.split('/')[:-1])+"/"
+                        files = self.pathForFile.split('/')[-1]
+                        self.samplingFrequencyOriginal = auxEMMARM.getSamplingFrequency_uEMMARM(folderPath, files, len(acceleration))
+                    else:
+                        #Sampling frequency has been informed by the user
+                        pass
                 else:
-                    #Sampling frequency has been informed by the user
-                    pass
-            else:
-                accelerationDigital = auxEMMARM.readSingleFile(self.fileVisualizedPath, self.selectedSystem,self. desiredChannel)
-                acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
-                if self.selectedSystem == 'uEMMARM':
-                    folderPath = "/".join(self.fileVisualizedPath.split('/')[:-1])+"/"
-                    files = self.fileVisualizedPath.split('/')[-1]
-                    self.samplingFrequencyOriginal = auxEMMARM.getSamplingFrequency_uEMMARM(folderPath, files, len(acceleration))
-                else:
-                    #Sampling frequency has been informed by the user
-                    pass
-            accelerationFiltered, samplingFrequencyFiltered  = auxEMMARM.filtering(acceleration, self.samplingFrequencyOriginal, self.filterConfiguration)
-            yk = MRPy(accelerationFiltered,fs=samplingFrequencyFiltered)
-            self.figurePSD, PSD = SSI.SDM(yk, nperseg=self.nps, plot=self.plotConfiguration, window='hann', nfft=2*self.nps)
-            self.progressBar.setFormat('%p%')
-            self.progressBar.setValue(15)
-
-            #Peak picking method
-            if self.modalIdentificationMethodToPerform['peak-picking']==True:
-                self.figurePP, self.textualResult_PP, FPP, ZPP_HP, PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex=auxEMMARM.averagedPeakPickingMethod(PSD, self.intervalForAveragingHz, plot=self.plotConfiguration, verbose=False, textualResults=True)
-            else:
-                figIgnore, FPP, ZPP_HP, ignoreThis, PSDAveragedPeakIndex, ignoreThis=auxEMMARM.averagedPeakPickingMethod(PSD, self.intervalForAveragingHz, plot=self.plotConfiguration, verbose=False)
-            self.progressBar.setValue(30)
-
-            #Build PSD object manually
-            PSD.pki  = np.array([PSDAveragedPeakIndex], dtype=int)
-            PSD.MGi  = np.array([0], dtype=int)
-            PSD.svi  = np.array([0], dtype=int)
-            PSD.tint = self.tint
-            self.figureANPSD, PSD = SSI.ANPSD_from_SDM(PSD,plot=self.plotConfiguration, mode="batch")
-            self.progressBar.setValue(45)
-
-            #BFD method
-            PSD.fint = np.array([self.fint_BFD[0]*FPP, self.fint_BFD[1]*FPP])
-            if self.modalIdentificationMethodToPerform['BFD']==True:
-                self.figureBFD, self.textualResult_BFD, FBFD, ZBFD_FT, VBFD, PSD_BFD = SSI.BFD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False, textualResults=True)
-            self.progressBar.setValue(60)
-
-            #EFDD method
-            PSD.fint = np.array([self.fint_EFDD[0]*FPP, self.fint_EFDD[1]*FPP])
-            if self.modalIdentificationMethodToPerform['EFDD']==True:
-                self.figureEFDD, self.figureAutc, self.textualResult_EFDD, FEFDD, ZEFDD, VEFDD, PSD_EFDD = SSI.EFDD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False, textualResults=True)
-            self.progressBar.setValue(75)
-
-            #SSI method
-            if self.modalIdentificationMethodToPerform['SSI-COV']==True:
-                yk = SSI.rearrange_data(yk,self.refs) 
-
-                FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL = SSI.SSI_COV_iterator(yk,self.i,self.startingOrderNumber, self.endOrderNumber, self.incrementBetweenOrder, plot=False)
-                
-                self.figureSSI, stableModes = SSI.stabilization_diagram(FSSI_MODEL,ZSSI_MODEL,VSSI_MODEL, tol=self.tol, plot=self.plotConfiguration, PSD=PSD, verbose=False)
-
-                self.textualResult_SSI, FSSI, ZSSI, VSSI, numStablePoles = SSI.stable_modes(FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL, stableModes, tol=0.01, spo=10, verbose=False, textualResults=True, numStablePoles=self.numModesToBeConsidered)
-                FSSI_CLUSTER=np.zeros(self.numModesToBeConsidered)
-                ZSSI_CLUSTER=np.zeros(self.numModesToBeConsidered)
-                numStablePoles_CLUSTER=np.zeros(self.numModesToBeConsidered)
-                eigenfrequenciesIndices = np.flip(np.argsort(numStablePoles))
-                
-                if FSSI.size == 0:
-                    print('No sufficiently large frequency clusters could be identified') 
-                else:
-                    for r, l in enumerate(np.take_along_axis(FSSI, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): FSSI_CLUSTER[r]=l
-
-                if ZSSI.size == 0:
-                    print('No sufficiently large damping clusters could be identified') 
-                else:
-                    for r, l in enumerate(np.take_along_axis(ZSSI, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): ZSSI_CLUSTER[r]=100*l
-                
-                if numStablePoles.size == 0:
-                    print('No sufficiently large clusters could be identified') 
-                else:
-                    for r, l in enumerate(np.take_along_axis(numStablePoles, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): numStablePoles_CLUSTER[r]=int(l)
-            self.progressBar.setValue(90)
-
-            #Display time series and PSD
-            self.figureTimeSeriesRaw=auxEMMARM.plotAccelerationTimeSeries([[acceleration,self.samplingFrequencyOriginal,'Original'],], plot=self.plotConfiguration)
-            self.graph_timeSeriesRaw.update_figure(self.figureTimeSeriesRaw)
-            self.figureTimeSeriesFiltered=auxEMMARM.plotAccelerationTimeSeries([[accelerationFiltered,samplingFrequencyFiltered,'Filtered'],], plot=self.plotConfiguration)
-            self.graph_timeSeriesFiltered.update_figure(self.figureTimeSeriesFiltered)
-            self.graph_PSD.update_figure(self.figurePSD)
-
-            #Display peak-picking method
-            if (self.plotConfiguration['typeForPeakPicking']==True) and (self.modalIdentificationMethodToPerform['peak-picking']==True):
-                self.graph_PP.update_figure(self.figurePP)
-                self.graph_NPSD.update_figure(self.figureANPSD)
-                self.textBrowser_results_PP.setText(self.textualResult_PP)
-            
-            #Display BFD method
-            if (self.plotConfiguration['typeForBFD']==True) and (self.modalIdentificationMethodToPerform['BFD']==True):
-                self.graph_BFD.update_figure(self.figureBFD)
-                self.textBrowser_results_BFD.setText(self.textualResult_BFD)
-
-            self.progressBar.setValue(95)
-
-            #Display EFDD method
-            if (self.plotConfiguration['typeForEFDD']=="Autocorrelation-SVD") and (self.modalIdentificationMethodToPerform['EFDD']==True):
-                self.graph_spectraEFDD.update_figure(self.figureEFDD)
-                self.graph_autcEFDD.update_figure(self.figureAutc)
-                self.textBrowser_results_EFDD.setText(self.textualResult_EFDD)
-            
-            #Display SSI method
-            if (self.plotConfiguration['typeForEFDD-AutocorrelationFitting'] is not False) and (self.modalIdentificationMethodToPerform['SSI-COV']==True):
-                self.graph_SSI.update_figure(self.figureSSI)
-                self.textBrowser_results_SSI.setText(self.textualResult_SSI)
-
-            self.progressBar.setValue(100)
-            if updatePlotInBatchAnalysis is True:
-                self.progressBar.setFormat('Update plot complete')
-            else:
-                self.progressBar.setFormat('Analysis complete')
-
-        elif self.selectedProcessing == 'batchProcessing':
-
-            self.agesOfMeasurementOriginal = np.zeros(len(self.filesToRead)) 
-
-            if self.modalIdentificationMethodToPerform['peak-picking']==True:
-                self.FPP = np.zeros(len(self.filesToRead))
-                self.ZPP_HP = np.zeros(len(self.filesToRead)) #To hold half-power bandwitdh
-            if self.modalIdentificationMethodToPerform['BFD']==True:
-                self.FBFD = np.zeros(len(self.filesToRead))
-                self.ZBFD_FT = np.zeros(len(self.filesToRead)) #To hold curve fitting
-            if self.modalIdentificationMethodToPerform['EFDD']==True:
-                self.FEFDD = np.zeros(len(self.filesToRead))
-                self.ZEFDD = np.zeros(len(self.filesToRead))
-            if self.modalIdentificationMethodToPerform['SSI-COV']==True:
-                self.numStablePoles_CLUSTER=np.zeros((len(self.filesToRead),self.numModesToBeConsidered))
-                self.FSSI_CLUSTER=np.zeros((len(self.filesToRead),self.numModesToBeConsidered))
-                self.ZSSI_CLUSTER=np.zeros((len(self.filesToRead),self.numModesToBeConsidered))
-
-            progressStep = np.linspace(100/len(self.filesToRead),100,len(self.filesToRead))
-            self.progressBar.setFormat('%p%')
-            for iteration, files in enumerate(self.filesToRead):
-
-                accelerationDigital = auxEMMARM.readBatchFile(self.pathForFile, files, self.selectedSystem, self.desiredChannel)
-                self.agesOfMeasurementOriginal[iteration] = auxEMMARM.getAgeAtMeasurementBatchFile(self.pathForFile, files, self.filesToRead[0], self.selectedSystem)
-                
-                acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
-                if self.selectedSystem == 'uEMMARM':
-                    samplingFrequency = auxEMMARM.getSamplingFrequency_uEMMARM(self.pathForFile, files, len(acceleration))
-                else:
-                    samplingFrequency = self.samplingFrequencyOriginal
-                
-                accelerationFiltered, samplingFrequencyFiltered  = auxEMMARM.filtering(acceleration, samplingFrequency, self.filterConfiguration)
-                
+                    accelerationDigital = auxEMMARM.readSingleFile(self.fileVisualizedPath, self.selectedSystem,self. desiredChannel)
+                    acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
+                    if self.selectedSystem == 'uEMMARM':
+                        folderPath = "/".join(self.fileVisualizedPath.split('/')[:-1])+"/"
+                        files = self.fileVisualizedPath.split('/')[-1]
+                        self.samplingFrequencyOriginal = auxEMMARM.getSamplingFrequency_uEMMARM(folderPath, files, len(acceleration))
+                    else:
+                        #Sampling frequency has been informed by the user
+                        pass
+                accelerationFiltered, samplingFrequencyFiltered  = auxEMMARM.filtering(acceleration, self.samplingFrequencyOriginal, self.filterConfiguration)
                 yk = MRPy(accelerationFiltered,fs=samplingFrequencyFiltered)
-                ignoreThis, PSD = SSI.SDM(yk, nperseg=self.nps, plot=self.plotConfiguration, window='hann', nfft=2*self.nps)
+                self.figurePSD, PSD = SSI.SDM(yk, nperseg=self.nps, plot=self.plotConfiguration, window='hann', nfft=2*self.nps)
+                self.progressBar.setFormat('%p%')
+                self.progressBar.setValue(15)
 
-                #1) PEAK-PICKING METHOD
+                #Peak picking method
                 if self.modalIdentificationMethodToPerform['peak-picking']==True:
-                    ignoreThis, self.FPP[iteration], self.ZPP_HP[iteration], PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex=auxEMMARM.averagedPeakPickingMethod(PSD, self.intervalForAveragingHz, verbose=False)
-                    PSD.fint = np.array([self.fint_BFD[0]*self.FPP[iteration], self.fint_BFD[1]*self.FPP[iteration]])
+                    self.figurePP, self.textualResult_PP, FPP, ZPP_HP, PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex=auxEMMARM.averagedPeakPickingMethod(PSD, self.intervalForAveragingHz, plot=self.plotConfiguration, verbose=False, textualResults=True)
                 else:
-                    ignoreThis, self.FPP, self.ZPP_HP, ignoreThis, PSDAveragedPeakIndex, ignoreThis=auxEMMARM.averagedPeakPickingMethod(PSD, 0.1, verbose=False)
-                    PSD.fint = np.array([self.fint_BFD[0]*self.FPP, self.fint_BFD[1]*self.FPP])
+                    figIgnore, FPP, ZPP_HP, ignoreThis, PSDAveragedPeakIndex, ignoreThis=auxEMMARM.averagedPeakPickingMethod(PSD, self.intervalForAveragingHz, plot=self.plotConfiguration, verbose=False)
+                self.progressBar.setValue(30)
 
-                #2) MAKE ALL SORTS OF COMPUTATIONS TO PREPARE FOR FURTHER COMPUTATIONS
+                #Build PSD object manually
                 PSD.pki  = np.array([PSDAveragedPeakIndex], dtype=int)
                 PSD.MGi  = np.array([0], dtype=int)
                 PSD.svi  = np.array([0], dtype=int)
                 PSD.tint = self.tint
-                ignoreThis, PSD = SSI.ANPSD_from_SDM(PSD,plot=self.plotConfiguration, mode="batch")
+                self.figureANPSD, PSD = SSI.ANPSD_from_SDM(PSD,plot=self.plotConfiguration, mode="batch")
+                self.progressBar.setValue(45)
 
-                #3) PERFORM BFD METHOD
-                PSD.fint = np.array([self.fint_BFD[0]*self.FPP, self.fint_BFD[1]*self.FPP])
+                #BFD method
                 if self.modalIdentificationMethodToPerform['BFD']==True:
-                    ignoreThis, self.FBFD[iteration], self.ZBFD_FT[iteration], VBFD, PSD_BFD = SSI.BFD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False)
-                    #ZBFD[iteration,:]
-                
-                #4) EFDD METHOD
-                PSD.fint = np.array([self.fint_EFDD[0]*self.FPP, self.fint_EFDD[1]*self.FPP])
-                if self.modalIdentificationMethodToPerform['EFDD']==True:
-                    ignoreThis, ignoreThis, self.FEFDD[iteration], self.ZEFDD[iteration], VEFDD, PSD_EFDD = SSI.EFDD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False)
+                    PSD.fint = np.array([self.fint_BFD[0]*FPP, self.fint_BFD[1]*FPP])
+                    self.figureBFD, self.textualResult_BFD, FBFD, ZBFD_FT, VBFD, PSD_BFD = SSI.BFD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False, textualResults=True)
+                self.progressBar.setValue(60)
 
-                #5) PERFORM SSI-COV METHOD
+                #EFDD method
+                if self.modalIdentificationMethodToPerform['EFDD']==True:
+                    PSD.fint = np.array([self.fint_EFDD[0]*FPP, self.fint_EFDD[1]*FPP])
+                    self.figureEFDD, self.figureAutc, self.textualResult_EFDD, FEFDD, ZEFDD, VEFDD, PSD_EFDD = SSI.EFDD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False, textualResults=True)
+                self.progressBar.setValue(75)
+
+                #SSI method
                 if self.modalIdentificationMethodToPerform['SSI-COV']==True:
                     yk = SSI.rearrange_data(yk,self.refs) 
+
                     FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL = SSI.SSI_COV_iterator(yk,self.i,self.startingOrderNumber, self.endOrderNumber, self.incrementBetweenOrder, plot=False)
-                    ignoreThis, stableModes = SSI.stabilization_diagram(FSSI_MODEL,ZSSI_MODEL,VSSI_MODEL, tol=self.tol, PSD=PSD, verbose=False)
-                    FSSI, ZSSI, VSSI, numStablePoles = SSI.stable_modes(FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL, stableModes, tol=0.01, spo=10, verbose=False,numStablePoles=self.numModesToBeConsidered)
+                    
+                    self.figureSSI, stableModes = SSI.stabilization_diagram(FSSI_MODEL,ZSSI_MODEL,VSSI_MODEL, tol=self.tol, plot=self.plotConfiguration, PSD=PSD, verbose=False)
+
+                    self.textualResult_SSI, FSSI, ZSSI, VSSI, numStablePoles = SSI.stable_modes(FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL, stableModes, tol=0.01, spo=10, verbose=False, textualResults=True, numStablePoles=self.numModesToBeConsidered)
+                    FSSI_CLUSTER=np.zeros(self.numModesToBeConsidered)
+                    ZSSI_CLUSTER=np.zeros(self.numModesToBeConsidered)
+                    numStablePoles_CLUSTER=np.zeros(self.numModesToBeConsidered)
                     eigenfrequenciesIndices = np.flip(np.argsort(numStablePoles))
-                    for r, l in enumerate(np.take_along_axis(FSSI, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): self.FSSI_CLUSTER[iteration][r]=l
-                    for r, l in enumerate(np.take_along_axis(ZSSI, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): self.ZSSI_CLUSTER[iteration][r]=100*l
-                    for r, l in enumerate(np.take_along_axis(numStablePoles, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): self.numStablePoles_CLUSTER[iteration][r]=int(l)
+                    
+                    if FSSI.size == 0:
+                        print('No sufficiently large frequency clusters could be identified') 
+                    else:
+                        for r, l in enumerate(np.take_along_axis(FSSI, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): FSSI_CLUSTER[r]=l
 
-                #6) POPULATE HEAT MAP VARIABLE
-                '''
-                if heatMap_BatchAnalysis['save'] == True:
-                    if iteration == 0:
-                        #The heatMap variable will be a 2D numpy array to store all PSDs in a organized way to plot a heat map of the EMM-ARM test
-                        #The first row will contain the ages associated to each PSD
-                        #The first column will contain the frequency bins of each PSD (they will be the same as all PSDs are processed in the same way)
-                        #The number of frequency bins will depend on the specified frequencies of interest.
-                        #The first element will contain a np.nan, as it will not contain anything meaningful (it is just the crossing of the row with ages and column with frequency bins)
+                    if ZSSI.size == 0:
+                        print('No sufficiently large damping clusters could be identified') 
+                    else:
+                        for r, l in enumerate(np.take_along_axis(ZSSI, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): ZSSI_CLUSTER[r]=100*l
+                    
+                    if numStablePoles.size == 0:
+                        print('No sufficiently large clusters could be identified') 
+                    else:
+                        for r, l in enumerate(np.take_along_axis(numStablePoles, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): numStablePoles_CLUSTER[r]=int(l)
+                self.progressBar.setValue(90)
 
-                        #First, check if it is the first iteration, populate the first column (with the frequency bins)
-                        indicesOfInterest=np.where(np.logical_and(PSD.f>=heatMap_BatchAnalysis['frequenciesOfInterest'][0], PSD.f<=heatMap_BatchAnalysis['frequenciesOfInterest'][1]))
-                        heatMap=np.zeros((len(indicesOfInterest[0])+1,len(filesToRead)+1))
-                        heatMap[0,0]=np.nan
-                        heatMap[1:,0]=PSD.f[indicesOfInterest] #Remember that first row is dedicated for age associated to the PSDs
-                    #Now, populate the next column with PSD
-                    #If iteration = n, then the respective colum in heatMapa is n+1, as the first column is already populated by frequency bins)
-                    heatMap[1:, iteration+1]=PSD.ANPSD[indicesOfInterest]
-                    #Populate the first element of the current column being populated with the associated age of the PSD
-                    heatMap[0, iteration+1]=agesOfMeasurementOriginal[iteration]
+                #Display time series and PSD
+                self.figureTimeSeriesRaw=auxEMMARM.plotAccelerationTimeSeries([[acceleration,self.samplingFrequencyOriginal,'Original'],], plot=self.plotConfiguration)
+                self.graph_timeSeriesRaw.update_figure(self.figureTimeSeriesRaw)
+                self.figureTimeSeriesFiltered=auxEMMARM.plotAccelerationTimeSeries([[accelerationFiltered,samplingFrequencyFiltered,'Filtered'],], plot=self.plotConfiguration)
+                self.graph_timeSeriesFiltered.update_figure(self.figureTimeSeriesFiltered)
+                self.graph_PSD.update_figure(self.figurePSD)
+
+                #Display peak-picking method
+                if (self.plotConfiguration['typeForPeakPicking']==True) and (self.modalIdentificationMethodToPerform['peak-picking']==True):
+                    self.graph_PP.update_figure(self.figurePP)
+                    self.graph_NPSD.update_figure(self.figureANPSD)
+                    self.textBrowser_results_PP.setText(self.textualResult_PP)
+                
+                #Display BFD method
+                if (self.plotConfiguration['typeForBFD']==True) and (self.modalIdentificationMethodToPerform['BFD']==True):
+                    self.graph_BFD.update_figure(self.figureBFD)
+                    self.textBrowser_results_BFD.setText(self.textualResult_BFD)
+
+                self.progressBar.setValue(95)
+
+                #Display EFDD method
+                if (self.plotConfiguration['typeForEFDD']=="Autocorrelation-SVD") and (self.modalIdentificationMethodToPerform['EFDD']==True):
+                    self.graph_spectraEFDD.update_figure(self.figureEFDD)
+                    self.graph_autcEFDD.update_figure(self.figureAutc)
+                    self.textBrowser_results_EFDD.setText(self.textualResult_EFDD)
+                
+                #Display SSI method
+                if (self.plotConfiguration['typeForEFDD-AutocorrelationFitting'] is not False) and (self.modalIdentificationMethodToPerform['SSI-COV']==True):
+                    self.graph_SSI.update_figure(self.figureSSI)
+                    self.textBrowser_results_SSI.setText(self.textualResult_SSI)
+
+                self.progressBar.setValue(100)
+                if updatePlotInBatchAnalysis is True:
+                    self.progressBar.setFormat('Update plot complete')
+                else:
+                    self.progressBar.setFormat('Analysis complete')
+
+            elif self.selectedProcessing == 'batchProcessing':
+
+                self.agesOfMeasurementOriginal = np.zeros(len(self.filesToRead)) 
+
+                if self.modalIdentificationMethodToPerform['peak-picking']==True:
+                    self.FPP = np.zeros(len(self.filesToRead))
+                    self.ZPP_HP = np.zeros(len(self.filesToRead)) #To hold half-power bandwitdh
+                if self.modalIdentificationMethodToPerform['BFD']==True:
+                    self.FBFD = np.zeros(len(self.filesToRead))
+                    self.ZBFD_FT = np.zeros(len(self.filesToRead)) #To hold curve fitting
+                if self.modalIdentificationMethodToPerform['EFDD']==True:
+                    self.FEFDD = np.zeros(len(self.filesToRead))
+                    self.ZEFDD = np.zeros(len(self.filesToRead))
+                if self.modalIdentificationMethodToPerform['SSI-COV']==True:
+                    self.numStablePoles_CLUSTER=np.zeros((len(self.filesToRead),self.numModesToBeConsidered))
+                    self.FSSI_CLUSTER=np.zeros((len(self.filesToRead),self.numModesToBeConsidered))
+                    self.ZSSI_CLUSTER=np.zeros((len(self.filesToRead),self.numModesToBeConsidered))
+
+                progressStep = np.linspace(100/len(self.filesToRead),100,len(self.filesToRead))
+                self.progressBar.setFormat('%p%')
+                for iteration, files in enumerate(self.filesToRead):
+
+                    accelerationDigital = auxEMMARM.readBatchFile(self.pathForFile, files, self.selectedSystem, self.desiredChannel)
+                    self.agesOfMeasurementOriginal[iteration] = auxEMMARM.getAgeAtMeasurementBatchFile(self.pathForFile, files, self.filesToRead[0], self.selectedSystem)
+                    
+                    acceleration = auxEMMARM.convertToG(accelerationDigital,self.calibrationFactor)
+                    if self.selectedSystem == 'uEMMARM':
+                        samplingFrequency = auxEMMARM.getSamplingFrequency_uEMMARM(self.pathForFile, files, len(acceleration))
+                    else:
+                        samplingFrequency = self.samplingFrequencyOriginal
+                    
+                    accelerationFiltered, samplingFrequencyFiltered  = auxEMMARM.filtering(acceleration, samplingFrequency, self.filterConfiguration)
+                    
+                    yk = MRPy(accelerationFiltered,fs=samplingFrequencyFiltered)
+                    ignoreThis, PSD = SSI.SDM(yk, nperseg=self.nps, plot=self.plotConfiguration, window='hann', nfft=2*self.nps)
+
+                    #1) PEAK-PICKING METHOD
+                    if self.modalIdentificationMethodToPerform['peak-picking']==True:
+                        ignoreThis, self.FPP[iteration], self.ZPP_HP[iteration], PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex=auxEMMARM.averagedPeakPickingMethod(PSD, self.intervalForAveragingHz, verbose=False)
+                    else:
+                        ignoreThis, self.FPP[iteration], self.ZPP_HP[iteration], ignoreThis, PSDAveragedPeakIndex, ignoreThis=auxEMMARM.averagedPeakPickingMethod(PSD, 0.1, verbose=False)
+
+                    #2) MAKE ALL SORTS OF COMPUTATIONS TO PREPARE FOR FURTHER COMPUTATIONS
+                    PSD.pki  = np.array([PSDAveragedPeakIndex], dtype=int)
+                    PSD.MGi  = np.array([0], dtype=int)
+                    PSD.svi  = np.array([0], dtype=int)
+                    PSD.tint = self.tint
+                    ignoreThis, PSD = SSI.ANPSD_from_SDM(PSD,plot=self.plotConfiguration, mode="batch")
+
+                    #3) PERFORM BFD METHOD
+                    if self.modalIdentificationMethodToPerform['BFD']==True:
+                        PSD.fint = np.array([self.fint_BFD[0]*self.FPP[iteration], self.fint_BFD[1]*self.FPP[iteration]])
+                        ignoreThis, self.FBFD[iteration], self.ZBFD_FT[iteration], VBFD, PSD_BFD = SSI.BFD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False)
+                        #ZBFD[iteration,:]
+                    
+                    #4) EFDD METHOD
+                    if self.modalIdentificationMethodToPerform['EFDD']==True:
+                        PSD.fint = np.array([self.fint_EFDD[0]*self.FPP[iteration], self.fint_EFDD[1]*self.FPP[iteration]])
+                        ignoreThis, ignoreThis, self.FEFDD[iteration], self.ZEFDD[iteration], VEFDD, PSD_EFDD = SSI.EFDD(yk, PSD, plot=self.plotConfiguration, mode='batch', verbose=False)
+
+                    #5) PERFORM SSI-COV METHOD
+                    if self.modalIdentificationMethodToPerform['SSI-COV']==True:
+                        yk = SSI.rearrange_data(yk,self.refs) 
+                        FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL = SSI.SSI_COV_iterator(yk,self.i,self.startingOrderNumber, self.endOrderNumber, self.incrementBetweenOrder, plot=False)
+                        ignoreThis, stableModes = SSI.stabilization_diagram(FSSI_MODEL,ZSSI_MODEL,VSSI_MODEL, tol=self.tol, PSD=PSD, verbose=False)
+                        FSSI, ZSSI, VSSI, numStablePoles = SSI.stable_modes(FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL, stableModes, tol=0.01, spo=10, verbose=False,numStablePoles=self.numModesToBeConsidered)
+                        eigenfrequenciesIndices = np.flip(np.argsort(numStablePoles))
+                        for r, l in enumerate(np.take_along_axis(FSSI, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): self.FSSI_CLUSTER[iteration][r]=l
+                        for r, l in enumerate(np.take_along_axis(ZSSI, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): self.ZSSI_CLUSTER[iteration][r]=100*l
+                        for r, l in enumerate(np.take_along_axis(numStablePoles, eigenfrequenciesIndices, 0)[0:self.numModesToBeConsidered]): self.numStablePoles_CLUSTER[iteration][r]=int(l)
+
+                    #6) POPULATE HEAT MAP VARIABLE
+                    '''
+                    if heatMap_BatchAnalysis['save'] == True:
+                        if iteration == 0:
+                            #The heatMap variable will be a 2D numpy array to store all PSDs in a organized way to plot a heat map of the EMM-ARM test
+                            #The first row will contain the ages associated to each PSD
+                            #The first column will contain the frequency bins of each PSD (they will be the same as all PSDs are processed in the same way)
+                            #The number of frequency bins will depend on the specified frequencies of interest.
+                            #The first element will contain a np.nan, as it will not contain anything meaningful (it is just the crossing of the row with ages and column with frequency bins)
+
+                            #First, check if it is the first iteration, populate the first column (with the frequency bins)
+                            indicesOfInterest=np.where(np.logical_and(PSD.f>=heatMap_BatchAnalysis['frequenciesOfInterest'][0], PSD.f<=heatMap_BatchAnalysis['frequenciesOfInterest'][1]))
+                            heatMap=np.zeros((len(indicesOfInterest[0])+1,len(filesToRead)+1))
+                            heatMap[0,0]=np.nan
+                            heatMap[1:,0]=PSD.f[indicesOfInterest] #Remember that first row is dedicated for age associated to the PSDs
+                        #Now, populate the next column with PSD
+                        #If iteration = n, then the respective colum in heatMapa is n+1, as the first column is already populated by frequency bins)
+                        heatMap[1:, iteration+1]=PSD.ANPSD[indicesOfInterest]
+                        #Populate the first element of the current column being populated with the associated age of the PSD
+                        heatMap[0, iteration+1]=agesOfMeasurementOriginal[iteration]
+                    '''
+                    #7) PROGRESS BAR
+                    #Update progress bar
+                    self.progressBar.setValue(int(progressStep[iteration]))
+                
+                #8) PLOT RESULTS IN FREQUENCY EVOLUTION TAB
+                figureFrequencyEvolution = None
+                figureDampingEvolution = None
+                figureFrequencyEvolution = self.buildFrequencyEvolutionFigure()
+                figureDampingEvolution = self.buildDampingEvolutionFigure()
+                self.graph_frequencyEvolution.update_figure(figureFrequencyEvolution)
+                self.graph_dampingEvolution.update_figure(figureDampingEvolution)
+                #Generate result files with the modal identification
                 '''
-                #7) PROGRESS BAR
-                #Update progress bar
-                self.progressBar.setValue(int(progressStep[iteration]))
-            
-            #8) PLOT RESULTS IN FREQUENCY EVOLUTION TAB
-            figureFrequencyEvolution = None
-            figureDampingEvolution = None
-            figureFrequencyEvolution = self.buildFrequencyEvolutionFigure()
-            figureDampingEvolution = self.buildDampingEvolutionFigure()
-            self.graph_frequencyEvolution.update_figure(figureFrequencyEvolution)
-            self.graph_dampingEvolution.update_figure(figureDampingEvolution)
-            #Generate result files with the modal identification
-            '''
-            if self.modalIdentificationMethodToPerform['peak-picking']==True:
-                np.savetxt(resultFilePreffix+'_Frequency_PP.txt', np.vstack((agesOfMeasurementOriginal, FPP)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFREQUENCY(HZ)")
-                np.savetxt(resultFilePreffix+'_Damping_HP_PP.txt', np.vstack((agesOfMeasurementOriginal, ZPP_HP)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tHALF-POWER DAMPING RATIO(%)")
-            if self.modalIdentificationMethodToPerform['BFD']==True:
-                np.savetxt(resultFilePreffix+'_Frequency_BFD.txt', np.vstack((agesOfMeasurementOriginal, FBFD)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFREQUENCY(HZ)")
-                np.savetxt(resultFilePreffix+'_Damping_FT_BFD.txt', np.vstack((agesOfMeasurementOriginal, ZBFD_FT)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFITTING DAMPING RATIO(%)")
-            if self.modalIdentificationMethodToPerform['EFDD']==True:
-                np.savetxt(resultFilePreffix+'_Frequency_EFFD.txt', np.vstack((agesOfMeasurementOriginal, FEFDD)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFREQUENCY(HZ)")
-                np.savetxt(resultFilePreffix+'_Damping_EFFD.txt', np.vstack((agesOfMeasurementOriginal, ZEFDD)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tDAMPING RATIO(%)")
-            if self.modalIdentificationMethodToPerform['SSI-COV']==True:
-                np.savetxt(resultFilePreffix+'_Frequency_SSI.txt', np.vstack((agesOfMeasurementOriginal, FSSI_CLUSTER.T)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFREQUENCIES(Hz)")
-                np.savetxt(resultFilePreffix+'_Damping_SSI.txt', np.vstack((agesOfMeasurementOriginal, ZSSI_CLUSTER.T)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tDAMPING RATIOS(%)")
-                np.savetxt(resultFilePreffix+'_numPoles_SSI.txt', np.vstack((agesOfMeasurementOriginal, numStablePoles_CLUSTER.T)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tNUMBER POLES(counts)")  
-            '''
-            '''
-            if  heatMap_BatchAnalysis['save'] == True:
-                savez_compressed(resultFilePreffix+'_'+headerResultFiles[0:3]+'_heatMap.npz', heatMap)     
-            '''
-            #Set progress bar message
-            self.progressBar.setFormat('Analysis complete')
-            self.runAnalysis(updatePlotInBatchAnalysis=True)
+                if self.modalIdentificationMethodToPerform['peak-picking']==True:
+                    np.savetxt(resultFilePreffix+'_Frequency_PP.txt', np.vstack((agesOfMeasurementOriginal, FPP)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFREQUENCY(HZ)")
+                    np.savetxt(resultFilePreffix+'_Damping_HP_PP.txt', np.vstack((agesOfMeasurementOriginal, ZPP_HP)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tHALF-POWER DAMPING RATIO(%)")
+                if self.modalIdentificationMethodToPerform['BFD']==True:
+                    np.savetxt(resultFilePreffix+'_Frequency_BFD.txt', np.vstack((agesOfMeasurementOriginal, FBFD)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFREQUENCY(HZ)")
+                    np.savetxt(resultFilePreffix+'_Damping_FT_BFD.txt', np.vstack((agesOfMeasurementOriginal, ZBFD_FT)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFITTING DAMPING RATIO(%)")
+                if self.modalIdentificationMethodToPerform['EFDD']==True:
+                    np.savetxt(resultFilePreffix+'_Frequency_EFFD.txt', np.vstack((agesOfMeasurementOriginal, FEFDD)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFREQUENCY(HZ)")
+                    np.savetxt(resultFilePreffix+'_Damping_EFFD.txt', np.vstack((agesOfMeasurementOriginal, ZEFDD)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tDAMPING RATIO(%)")
+                if self.modalIdentificationMethodToPerform['SSI-COV']==True:
+                    np.savetxt(resultFilePreffix+'_Frequency_SSI.txt', np.vstack((agesOfMeasurementOriginal, FSSI_CLUSTER.T)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFREQUENCIES(Hz)")
+                    np.savetxt(resultFilePreffix+'_Damping_SSI.txt', np.vstack((agesOfMeasurementOriginal, ZSSI_CLUSTER.T)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tDAMPING RATIOS(%)")
+                    np.savetxt(resultFilePreffix+'_numPoles_SSI.txt', np.vstack((agesOfMeasurementOriginal, numStablePoles_CLUSTER.T)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tNUMBER POLES(counts)")  
+                '''
+                '''
+                if  heatMap_BatchAnalysis['save'] == True:
+                    savez_compressed(resultFilePreffix+'_'+headerResultFiles[0:3]+'_heatMap.npz', heatMap)     
+                '''
+                #Set progress bar message
+                self.progressBar.setFormat('Analysis complete')
+                self.runAnalysis(updatePlotInBatchAnalysis=True)
+        except Exception as e:
+            # Print the exception error message
+            logMessage = ">{0}: An exception occurred. This may be due to bad input. Exception description: \n {1}".format(datetime.datetime.now(),traceback.format_exc())
+            self.textBrowser_log.append(logMessage)
 
     #Function to validate inputs
     def validateInputs (self):
@@ -1018,7 +1101,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.plotConfiguration=dlg_plotConfiguration.plotConfiguration
         print("Plot configuration dialog exit.\n",self.plotConfiguration) if debugActivated else None
-
     def populate_plotConfiguration (self, firstInitialization=False):
         if firstInitialization is True:
             self.plotGeneral = {'frequencyBandOfInterest': [0,250], 'fontSize': 10, 'fontName':'Times New Roman', 'figSize': (5,2), 'dpi': 150,'lowerYFactorPlotPSD': 0.8, 'upperYFactorPlotPSD': 1.2}
@@ -1039,14 +1121,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plotConfiguration.update(self.plotSSI)
 
         print(self.plotConfiguration) if debugActivated else None
-        
     def try_float(self,v):
         #Convert a string to float and handle the case the string is empty, converting it to None
         try:
             return float(v)
         except Exception:
             return None
-
     def buildFrequencyEvolutionFigure(self):
         fig = plt.figure(figsize=self.plotConfiguration['figSize'], dpi=self.plotConfiguration['dpi'])
         ax = fig.add_subplot(111)
@@ -1066,7 +1146,6 @@ class MainWindow(QtWidgets.QMainWindow):
         ax.legend(loc="lower right", fontsize=self.plotConfiguration['fontSize'])
         fig.tight_layout()  
         return fig
-    
     def buildDampingEvolutionFigure(self):
         fig = plt.figure(figsize=self.plotConfiguration['figSize'], dpi=self.plotConfiguration['dpi'])
         ax = fig.add_subplot(111)
@@ -1086,7 +1165,82 @@ class MainWindow(QtWidgets.QMainWindow):
         ax.legend(loc="lower right", fontsize=self.plotConfiguration['fontSize'])
         fig.tight_layout()  
         return fig
-    
+    def updateGUIDisplayValues(self): 
+        #Main display
+        self.lineEdit_filePath.setText(self.pathForFile)
+        #self.fileVisualizedPath
+        #self.filesToRead
+        #self.selectedFileType
+        #self.selectedFileExtension
+        self.comboBox_typeOfSystem.setCurrentText(self.selectedSystem)
+        self.spinBox_channelSelection.setValue(self.desiredChannel)
+        self.lineEdit_accelConvFactor.setText(str(1.0/self.calibrationFactor))
+        self.lineEdit_samplingFrequency.setText(str(self.samplingFrequencyOriginal))
+        if self.selectedProcessing == 'singleFile':
+            self.radioButton_singleFile.setChecked(True)
+            self.radioButton_multipleFile.setChecked(False)
+        elif self.selectedProcessing == 'batchProcessing':
+            self.radioButton_singleFile.setChecked(False)
+            self.radioButton_multipleFile.setChecked(True)
+
+        self.filterConfiguration=self.currentAnalysisConfiguration['filterConfiguration']
+        self.checkBox_detrend.setChecked(False)
+        self.checkBox_butterworthActivate.setChecked(False)
+        self.checkBox_decimationActivate.setChecked(False)
+        for filter in self.currentAnalysisConfiguration['filterConfiguration']:
+            if filter['filter']=='detrend':
+                self.comboBox_detrendType.setCurrentText(filter['type'])
+                self.checkBox_detrend.setChecked(True)
+            if filter['filter']=='butterworth':
+                self.spinBox_butterworthOrder.setValue(filter['order'])
+                self.lineEdit_butterworthLowPassValue.setCurrentText(filter['frequencies'][1])
+                self.lineEdit_butterworthHighPassValue.setCurrentText(filter['frequencies'][0])
+                self.checkBox_butterworthActivate.setChecked(True)
+            if filter['filter']=='decimation':
+                self.spinBox_decimationFactor.setValue(filter['decimationFactor'])
+                self.checkBox_decimationActivate.setChecked(True)
+
+        self.lineEdit_windowLength_PSD.setText(str(self.nps))
+        
+        self.modalIdentificationMethodToPerform=self.currentAnalysisConfiguration['modalIdentificationMethodToPerform']
+        
+        self.checkBox_activate_PP.setChecked(False)
+        self.checkBox_activate_BFD.setChecked(False)
+        self.checkBox_activate_EFDD.setChecked(False)
+        self.checkBox_activate_SSI.setChecked(False)
+
+        if self.modalIdentificationMethodToPerform['peak-picking'] is True:
+            self.lineEdit_averagingInterval_PP.setText(str(self.intervalForAveragingHz))
+            self.checkBox_activate_PP.setChecked(True)
+        if self.modalIdentificationMethodToPerform['BFD'] is True:
+            self.lineEdit_curveFittingFrequencyLowerBound_BFD.setText(str(self.fint_BFD[0]*100))
+            self.lineEdit_curveFittingFrequencyUpperBound_BFD.setText(str(self.fint_BFD[1]*100))
+            self.checkBox_activate_BFD.setChecked(True)
+        if self.modalIdentificationMethodToPerform['EFDD'] is True:
+            self.lineEdit_curveFittingFrequencyLowerBound_EFDD.setText(str(self.fint_EFDD[0]*100))
+            self.lineEdit_curveFittingFrequencyUpperBound_EFDD.setText(str(self.fint_EFDD[1]*100))
+            self.lineEdit_curveFittingTimeLowerBound_EFDD.setText(str(self.tint[0]))
+            self.lineEdit_curveFittingTimeUpperBound_EFDD.setText(str(self.tint[1]))            
+            self.checkBox_activate_EFDD.setChecked(True)
+        if self.modalIdentificationMethodToPerform['SSI-COV'] is True:
+            self.spinBox_numModes_SSI.setValue(self.numModesToBeConsidered)
+            self.spinBox_numTimeLags_SSI.setValue(self.i)
+            self.spinBox_startingModelOrder_SSI.setValue(self.startingOrderNumber)
+            self.spinBox_endingModelOrder_SSI.setValue(self.endOrderNumber)
+            self.spinBox_orderIncrement_SSI.setValue(self.incrementBetweenOrder)
+            self.lineEdit_stabTolFrequency_allowedVariation_SSI.setText(str(self.tol[0][0]))
+            self.lineEdit_stabTolFrequency_lowerBound_SSI.setText(str(self.tol[0][1]))
+            self.lineEdit_stabTolFrequency_upperBound_SSI.setText(str(self.tol[0][2]))
+            self.lineEdit_stabTolDamping_allowedVariation_SSI.setText(str(self.tol[1][0]))
+            self.lineEdit_stabTolDamping_lowerBound_SSI.setText(str(self.tol[1][1]))
+            self.lineEdit_stabTolDamping_upperBound_SSI.setText(str(self.tol[1][2]))
+            self.checkBox_activate_SSI.setChecked(True)
+
+        #self.plotConfiguration=self.currentAnalysisConfiguration['plotConfiguration']
+    def collapse_widget(splitter, widget_index):
+        sizes = splitter.sizes()
+        sizes[widget_index] = 0  # Set the size of the widget you want to collapse to 0
+        splitter.setSizes(sizes)
 class plotConfigDlg(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
