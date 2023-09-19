@@ -47,17 +47,17 @@ class MplWidget(QWidget):
         widget_width,widget_height=self.canvas.figure.get_size_inches()
         original_dpi = self.canvas.figure.get_dpi()
         # Clear the existing figure content
-        self.canvas.figure.clf()
-        self.canvas.axes.clear()
+        #self.canvas.figure.clf()
+        #self.canvas.axes.clear()
 
         # Copy the contents of the new figure onto the canvas
-        self.canvas.figure = copy.deepcopy(new_figure)
-        #self.canvas.figure = new_figure
+        #self.canvas.figure = copy.deepcopy(new_figure)
+        self.canvas.figure = new_figure
 
         # Set the size of the new figure based on the widget's size
         self.canvas.figure.set_size_inches(widget_width, widget_height)
         self.canvas.figure.set_dpi(original_dpi)
-        self.canvas.figure.tight_layout()
+        #self.canvas.figure.set_tight_layout(True)
         
         #Set font
         all_axes = []

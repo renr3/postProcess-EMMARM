@@ -833,11 +833,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def runAnalysis(self, updatePlotInBatchAnalysis=False):
         worker = Worker(self.runAnalysisST,updatePlotInBatchAnalysis,self)
         worker.signals.updateGraph.connect(self.updateGraphs)
+        worker.signals.updateProgressBar.connect(self.updateProgressBar)
         # Execute
         self.threadpool.start(worker)
 
-    def runAnalysisST(self, updatePlotInBatchAnalysis=False):
+    def runAnalysis_legacy(self, updatePlotInBatchAnalysis=False):
         '''
+        This function is here just for legacy. It was used when multithreading was not deployed yet.
         updatePlotInBatchAnalysis: bool
             This variable is used in the context of the "Update plot" button in Batch Analysis
         '''
@@ -1097,6 +1099,14 @@ class MainWindow(QtWidgets.QMainWindow):
             self.textBrowser_log.append(logMessage)
 
     #Function to validate inputs
+    def updateProgressBar (self, list):
+        progress, typeOfInformation = list
+        if typeOfInformation == 'percentage':
+            self.progressBar.setFormat('%p%')
+            self.progressBar.setValue(progress)
+        else:
+            self.progressBar.setFormat(typeOfInformation)
+
     def updateGraphs (self, plotToUpdate=None):
         #Plot to update is an int from 0...N
         if plotToUpdate == 0:
@@ -1117,6 +1127,12 @@ class MainWindow(QtWidgets.QMainWindow):
         elif plotToUpdate == 4:
             self.graph_SSI.update_figure(self.figureSSI)
             self.textBrowser_results_SSI.setText(self.textualResult_SSI)
+        elif plotToUpdate == 5:
+            figureFrequencyEvolution = self.buildFrequencyEvolutionFigure()
+            figureDampingEvolution = self.buildDampingEvolutionFigure()
+            self.graph_frequencyEvolution.update_figure(figureFrequencyEvolution)
+            self.graph_dampingEvolution.update_figure(figureDampingEvolution)
+
     def validateInputs (self):
         #Validate an acceleration conversion factor was inserted
         #Validate a sampling frequency was informed
@@ -1161,43 +1177,42 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception:
             return None
     def buildFrequencyEvolutionFigure(self):
-        fig = plt.figure(figsize=self.plotConfiguration['figSize'], dpi=self.plotConfiguration['dpi'])
+        fig = Figure(figsize=self.plotConfiguration['figSize'], dpi=self.plotConfiguration['dpi'])
         ax = fig.add_subplot(111)
-        plt.close(fig)
-        ax.set_xlabel('Age (days)',size=self.plotConfiguration['fontSize'], fontname=self.plotConfiguration['fontName'])
+        ax.set_xlabel('Time since start of test (hours)',size=self.plotConfiguration['fontSize'], fontname=self.plotConfiguration['fontName'])
         ax.set_ylabel('Frequency (Hz)',size=self.plotConfiguration['fontSize'], fontname=self.plotConfiguration['fontName'])
         ax.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
-        ax.xaxis.set_minor_locator(MultipleLocator(5))
+        ax.xaxis.set_minor_locator(MultipleLocator(24))
         if self.modalIdentificationMethodToPerform['peak-picking'] is True:
-            ax.plot(self.agesOfMeasurementOriginal,self.FPP,label='peak picking')
+            ax.plot(self.agesOfMeasurementOriginal/(60*60),self.FPP,label='peak picking')
         if self.modalIdentificationMethodToPerform['BFD'] is True:
-            ax.plot(self.agesOfMeasurementOriginal,self.FBFD,label='BFD')
+            ax.plot(self.agesOfMeasurementOriginal/(60*60),self.FBFD,label='BFD')
         if self.modalIdentificationMethodToPerform['EFDD'] is True:
-            ax.plot(self.agesOfMeasurementOriginal,self.FEFDD,label='EFDD')
+            ax.plot(self.agesOfMeasurementOriginal/(60*60),self.FEFDD,label='EFDD')
         if self.modalIdentificationMethodToPerform['SSI-COV'] is True:
-            ax.plot(self.agesOfMeasurementOriginal,self.FSSI_CLUSTER[:,0],label='SSI-COV')
+            ax.plot(self.agesOfMeasurementOriginal/(60*60),self.FSSI_CLUSTER[:,0],label='SSI-COV')
         ax.legend(loc="lower right", fontsize=self.plotConfiguration['fontSize'])
-        fig.tight_layout()  
+        fig.set_tight_layout(True)  
         return fig
     def buildDampingEvolutionFigure(self):
-        fig = plt.figure(figsize=self.plotConfiguration['figSize'], dpi=self.plotConfiguration['dpi'])
+        fig = Figure(figsize=self.plotConfiguration['figSize'], dpi=self.plotConfiguration['dpi'])
         ax = fig.add_subplot(111)
-        plt.close(fig)
-        ax.set_xlabel('Age (days)',size=self.plotConfiguration['fontSize'], fontname=self.plotConfiguration['fontName'])
+        ax.set_xlabel('Time since start of test (hours)',size=self.plotConfiguration['fontSize'], fontname=self.plotConfiguration['fontName'])
         ax.set_ylabel('Damping (%)',size=self.plotConfiguration['fontSize'], fontname=self.plotConfiguration['fontName'])
         ax.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
-        ax.xaxis.set_minor_locator(MultipleLocator(5))
+        ax.xaxis.set_minor_locator(MultipleLocator(24))
         if self.modalIdentificationMethodToPerform['peak-picking'] is True:
-            ax.plot(self.agesOfMeasurementOriginal,self.ZPP_HP,label='peak picking')
+            ax.plot(self.agesOfMeasurementOriginal/(60*60),self.ZPP_HP,label='peak picking')
         if self.modalIdentificationMethodToPerform['BFD'] is True:
-            ax.plot(self.agesOfMeasurementOriginal,self.ZBFD_FT,label='BFD')
+            ax.plot(self.agesOfMeasurementOriginal/(60*60),self.ZBFD_FT,label='BFD')
         if self.modalIdentificationMethodToPerform['EFDD'] is True:
-            ax.plot(self.agesOfMeasurementOriginal,self.ZEFDD,label='EFDD')
+            ax.plot(self.agesOfMeasurementOriginal/(60*60),self.ZEFDD,label='EFDD')
         if self.modalIdentificationMethodToPerform['SSI-COV'] is True:
-            ax.plot(self.agesOfMeasurementOriginal,self.ZSSI_CLUSTER[:,0],label='SSI-COV')
+            ax.plot(self.agesOfMeasurementOriginal/(60*60),self.ZSSI_CLUSTER[:,0],label='SSI-COV')
         ax.legend(loc="lower right", fontsize=self.plotConfiguration['fontSize'])
-        fig.tight_layout()  
+        fig.set_tight_layout(True)    
         return fig
+    
     def updateGUIDisplayValues(self): 
         #Main display
         self.lineEdit_filePath.setText(self.pathForFile)
@@ -1458,6 +1473,7 @@ class plotConfigDlg(QDialog):
 
 class WorkerSignals(QObject):
     updateGraph = pyqtSignal(int)
+    updateProgressBar = pyqtSignal(list)
 
 class Worker(QRunnable):
     '''
@@ -1490,6 +1506,7 @@ class Worker(QRunnable):
         if self.analysisObject.selectedProcessing == 'singleFile' or (self.updatePlotInBatchAnalysis is True): 
             #Initial processing common to any modal analysis method selected
             #Check if this call is in a single file analysis, or the update of graphs in batch analysis
+            self.signals.updateProgressBar.emit([0,'percentage'])
             if self.updatePlotInBatchAnalysis is False:
                 accelerationDigital = auxEMMARM.readSingleFile(self.analysisObject.pathForFile, self.analysisObject.selectedSystem,self.analysisObject. desiredChannel)
                 acceleration = auxEMMARM.convertToG(accelerationDigital,self.analysisObject.calibrationFactor)
@@ -1513,6 +1530,7 @@ class Worker(QRunnable):
             accelerationFiltered, samplingFrequencyFiltered  = auxEMMARM.filtering(acceleration, self.analysisObject.samplingFrequencyOriginal, self.analysisObject.filterConfiguration)
             yk = MRPy(accelerationFiltered,fs=samplingFrequencyFiltered)
             self.analysisObject.figurePSD, PSD = SSI.SDM(yk, nperseg=self.analysisObject.nps, plot=self.analysisObject.plotConfiguration, window='hann', nfft=2*self.analysisObject.nps)
+            self.signals.updateProgressBar.emit([10,'percentage'])
 
             #Display time series and PSD
             self.analysisObject.figureTimeSeriesRaw=auxEMMARM.plotAccelerationTimeSeries([[acceleration,self.analysisObject.samplingFrequencyOriginal,'Original'],], plot=self.analysisObject.plotConfiguration)
@@ -1521,18 +1539,20 @@ class Worker(QRunnable):
             self.analysisObject.graph_timeSeriesFiltered.update_figure(self.analysisObject.figureTimeSeriesFiltered)
             self.analysisObject.graph_PSD.update_figure(self.analysisObject.figurePSD)
             self.signals.updateGraph.emit(0)
-            #self.analysisObject.progressBar.setFormat('%p%')
-            #self.analysisObject.progressBar.setValue(15)
+            self.signals.updateProgressBar.emit([20,'percentage'])
 
             #Peak picking method
             if self.analysisObject.modalIdentificationMethodToPerform['peak-picking']==True:
                 self.analysisObject.figurePP, self.analysisObject.textualResult_PP, FPP, ZPP_HP, PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex=auxEMMARM.averagedPeakPickingMethod(PSD, self.analysisObject.intervalForAveragingHz, plot=self.analysisObject.plotConfiguration, verbose=False, textualResults=True)
                 #Display peak-picking method
+                self.signals.updateProgressBar.emit([30,'percentage'])
                 if (self.analysisObject.plotConfiguration['typeForPeakPicking']==True):
                     self.signals.updateGraph.emit(1)
+                    self.signals.updateProgressBar.emit([40,'percentage'])
             else:
                 figIgnore, FPP, ZPP_HP, ignoreThis, PSDAveragedPeakIndex, ignoreThis=auxEMMARM.averagedPeakPickingMethod(PSD, self.analysisObject.intervalForAveragingHz, plot=self.analysisObject.plotConfiguration, verbose=False)
-            #self.analysisObject.progressBar.setValue(30)
+                self.signals.updateProgressBar.emit([30,'percentage'])
+                self.signals.updateProgressBar.emit([40,'percentage'])
 
 
             #Build PSD object manually
@@ -1541,39 +1561,39 @@ class Worker(QRunnable):
             PSD.svi  = np.array([0], dtype=int)
             PSD.tint = self.analysisObject.tint
             self.analysisObject.figureANPSD, PSD = SSI.ANPSD_from_SDM(PSD,plot=self.analysisObject.plotConfiguration, mode="batch")
-            #self.analysisObject.progressBar.setValue(45)
+            self.signals.updateProgressBar.emit([50,'percentage'])
 
             #BFD method
             if self.analysisObject.modalIdentificationMethodToPerform['BFD']==True:
                 PSD.fint = np.array([self.analysisObject.fint_BFD[0]*FPP, self.analysisObject.fint_BFD[1]*FPP])
                 self.analysisObject.figureBFD, self.analysisObject.textualResult_BFD, FBFD, ZBFD_FT, VBFD, PSD_BFD = SSI.BFD(yk, PSD, plot=self.analysisObject.plotConfiguration, mode='batch', verbose=False, textualResults=True)
+                self.signals.updateProgressBar.emit([60,'percentage'])
                 #Display BFD method
                 if (self.analysisObject.plotConfiguration['typeForBFD']==True) and (self.analysisObject.modalIdentificationMethodToPerform['BFD']==True):
                     self.signals.updateGraph.emit(2)
-            #self.analysisObject.progressBar.setValue(60)
+                    self.signals.updateProgressBar.emit([70,'percentage'])
 
             #EFDD method
             if self.analysisObject.modalIdentificationMethodToPerform['EFDD']==True:
                 PSD.fint = np.array([self.analysisObject.fint_EFDD[0]*FPP, self.analysisObject.fint_EFDD[1]*FPP])
                 self.analysisObject.figureEFDD, self.analysisObject.figureAutc, self.analysisObject.textualResult_EFDD, FEFDD, ZEFDD, VEFDD, PSD_EFDD = SSI.EFDD(yk, PSD, plot=self.analysisObject.plotConfiguration, mode='batch', verbose=False, textualResults=True)
+                self.signals.updateProgressBar.emit([75,'percentage'])
                 #Display EFDD method
                 if (self.analysisObject.plotConfiguration['typeForEFDD']=="Autocorrelation-SVD") and (self.analysisObject.modalIdentificationMethodToPerform['EFDD']==True):
                     self.signals.updateGraph.emit(3)
-            #self.analysisObject.progressBar.setValue(75)
+                    self.signals.updateProgressBar.emit([80,'percentage'])
 
             #SSI method
             if self.analysisObject.modalIdentificationMethodToPerform['SSI-COV']==True:
                 yk = SSI.rearrange_data(yk,self.analysisObject.refs) 
-
                 FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL = SSI.SSI_COV_iterator(yk,self.analysisObject.i,self.analysisObject.startingOrderNumber, self.analysisObject.endOrderNumber, self.analysisObject.incrementBetweenOrder, plot=False)
-                
                 self.analysisObject.figureSSI, stableModes = SSI.stabilization_diagram(FSSI_MODEL,ZSSI_MODEL,VSSI_MODEL, tol=self.analysisObject.tol, plot=self.analysisObject.plotConfiguration, PSD=PSD, verbose=False)
-
                 self.analysisObject.textualResult_SSI, FSSI, ZSSI, VSSI, numStablePoles = SSI.stable_modes(FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL, stableModes, tol=0.01, spo=10, verbose=False, textualResults=True, numStablePoles=self.analysisObject.numModesToBeConsidered)
                 FSSI_CLUSTER=np.zeros(self.analysisObject.numModesToBeConsidered)
                 ZSSI_CLUSTER=np.zeros(self.analysisObject.numModesToBeConsidered)
                 numStablePoles_CLUSTER=np.zeros(self.analysisObject.numModesToBeConsidered)
                 eigenfrequenciesIndices = np.flip(np.argsort(numStablePoles))
+                self.signals.updateProgressBar.emit([90,'percentage'])
                 
                 if FSSI.size == 0:
                     print('No sufficiently large frequency clusters could be identified') 
@@ -1593,17 +1613,14 @@ class Worker(QRunnable):
                 #Display SSI method
                 if (self.analysisObject.plotConfiguration['typeForEFDD-AutocorrelationFitting'] is not False) and (self.    analysisObject.modalIdentificationMethodToPerform['SSI-COV']==True):
                     self.signals.updateGraph.emit(4)
-            #self.analysisObject.progressBar.setValue(90)
+                
+            self.signals.updateProgressBar.emit([100,'percentage'])
 
-            '''
-            self.analysisObject.progressBar.setValue(95)
-
-            self.analysisObject.progressBar.setValue(100)
             if self.updatePlotInBatchAnalysis is True:
-                self.analysisObject.progressBar.setFormat('Update plot complete')
+                self.signals.updateProgressBar.emit([100,'Update plot complete'])
             else:
+                self.signals.updateProgressBar.emit([100,'Analysis complete'])
                 self.analysisObject.progressBar.setFormat('Analysis complete')
-            '''
         elif self.analysisObject.selectedProcessing == 'batchProcessing':
 
             self.analysisObject.agesOfMeasurementOriginal = np.zeros(len(self.analysisObject.filesToRead)) 
@@ -1622,9 +1639,11 @@ class Worker(QRunnable):
                 self.analysisObject.FSSI_CLUSTER=np.zeros((len(self.analysisObject.filesToRead),self.analysisObject.numModesToBeConsidered))
                 self.analysisObject.ZSSI_CLUSTER=np.zeros((len(self.analysisObject.filesToRead),self.analysisObject.numModesToBeConsidered))
 
-            progressStep = np.linspace(100/len(self.analysisObject.filesToRead),100,len(self.analysisObject.filesToRead))
-            #self.analysisObject.progressBar.setFormat('%p%')
+            progressStep = np.linspace(100/len(self.analysisObject.filesToRead),90,len(self.analysisObject.filesToRead))
+            self.signals.updateProgressBar.emit([0,'percentage'])
+            lastProgress = 0
             for iteration, files in enumerate(self.analysisObject.filesToRead):
+                currentProgressStep = int(progressStep[iteration])-lastProgress
 
                 accelerationDigital = auxEMMARM.readBatchFile(self.analysisObject.pathForFile, files, self.analysisObject.selectedSystem, self.analysisObject.desiredChannel)
                 self.analysisObject.agesOfMeasurementOriginal[iteration] = auxEMMARM.getAgeAtMeasurementBatchFile(self.analysisObject.pathForFile, files, self.analysisObject.filesToRead[0], self.analysisObject.selectedSystem)
@@ -1639,12 +1658,14 @@ class Worker(QRunnable):
                 
                 yk = MRPy(accelerationFiltered,fs=samplingFrequencyFiltered)
                 ignoreThis, PSD = SSI.SDM(yk, nperseg=self.analysisObject.nps, plot=self.analysisObject.plotConfiguration, window='hann', nfft=2*self.analysisObject.nps)
+                self.signals.updateProgressBar.emit([int(lastProgress+currentProgressStep/7),'percentage'])
 
                 #1) PEAK-PICKING METHOD
                 if self.analysisObject.modalIdentificationMethodToPerform['peak-picking']==True:
                     ignoreThis, self.analysisObject.FPP[iteration], self.analysisObject.ZPP_HP[iteration], PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex=auxEMMARM.averagedPeakPickingMethod(PSD, self.analysisObject.intervalForAveragingHz, verbose=False)
                 else:
                     ignoreThis, self.analysisObject.FPP[iteration], self.analysisObject.ZPP_HP[iteration], ignoreThis, PSDAveragedPeakIndex, ignoreThis=auxEMMARM.averagedPeakPickingMethod(PSD, 0.1, verbose=False)
+                self.signals.updateProgressBar.emit([int(lastProgress+currentProgressStep/6),'percentage'])
 
                 #2) MAKE ALL SORTS OF COMPUTATIONS TO PREPARE FOR FURTHER COMPUTATIONS
                 PSD.pki  = np.array([PSDAveragedPeakIndex], dtype=int)
@@ -1652,17 +1673,20 @@ class Worker(QRunnable):
                 PSD.svi  = np.array([0], dtype=int)
                 PSD.tint = self.analysisObject.tint
                 ignoreThis, PSD = SSI.ANPSD_from_SDM(PSD,plot=self.analysisObject.plotConfiguration, mode="batch")
+                self.signals.updateProgressBar.emit([int(lastProgress+currentProgressStep/5),'percentage'])
 
                 #3) PERFORM BFD METHOD
                 if self.analysisObject.modalIdentificationMethodToPerform['BFD']==True:
                     PSD.fint = np.array([self.analysisObject.fint_BFD[0]*self.analysisObject.FPP[iteration], self.analysisObject.fint_BFD[1]*self.analysisObject.FPP[iteration]])
                     ignoreThis, self.analysisObject.FBFD[iteration], self.analysisObject.ZBFD_FT[iteration], VBFD, PSD_BFD = SSI.BFD(yk, PSD, plot=self.analysisObject.plotConfiguration, mode='batch', verbose=False)
                     #ZBFD[iteration,:]
+                self.signals.updateProgressBar.emit([int(lastProgress+currentProgressStep/4),'percentage'])
                 
                 #4) EFDD METHOD
                 if self.analysisObject.modalIdentificationMethodToPerform['EFDD']==True:
                     PSD.fint = np.array([self.analysisObject.fint_EFDD[0]*self.analysisObject.FPP[iteration], self.analysisObject.fint_EFDD[1]*self.analysisObject.FPP[iteration]])
                     ignoreThis, ignoreThis, self.analysisObject.FEFDD[iteration], self.analysisObject.ZEFDD[iteration], VEFDD, PSD_EFDD = SSI.EFDD(yk, PSD, plot=self.analysisObject.plotConfiguration, mode='batch', verbose=False)
+                self.signals.updateProgressBar.emit([int(lastProgress+currentProgressStep/3),'percentage'])
 
                 #5) PERFORM SSI-COV METHOD
                 if self.analysisObject.modalIdentificationMethodToPerform['SSI-COV']==True:
@@ -1674,6 +1698,7 @@ class Worker(QRunnable):
                     for r, l in enumerate(np.take_along_axis(FSSI, eigenfrequenciesIndices, 0)[0:self.analysisObject.numModesToBeConsidered]): self.analysisObject.FSSI_CLUSTER[iteration][r]=l
                     for r, l in enumerate(np.take_along_axis(ZSSI, eigenfrequenciesIndices, 0)[0:self.analysisObject.numModesToBeConsidered]): self.analysisObject.ZSSI_CLUSTER[iteration][r]=100*l
                     for r, l in enumerate(np.take_along_axis(numStablePoles, eigenfrequenciesIndices, 0)[0:self.analysisObject.numModesToBeConsidered]): self.analysisObject.numStablePoles_CLUSTER[iteration][r]=int(l)
+                self.signals.updateProgressBar.emit([int(lastProgress+currentProgressStep/2),'percentage'])
 
                 #6) POPULATE HEAT MAP VARIABLE
                 '''
@@ -1698,13 +1723,11 @@ class Worker(QRunnable):
                 '''
                 #7) PROGRESS BAR
                 #Update progress bar
-                #self.analysisObject.progressBar.setValue(int(progressStep[iteration]))
+                self.signals.updateProgressBar.emit([int(lastProgress+currentProgressStep),'percentage'])
+                lastProgress = lastProgress+currentProgressStep
             
             #8) PLOT RESULTS IN FREQUENCY EVOLUTION TAB
-            figureFrequencyEvolution = None
-            figureDampingEvolution = None
-            figureFrequencyEvolution = self.analysisObject.buildFrequencyEvolutionFigure()
-            figureDampingEvolution = self.analysisObject.buildDampingEvolutionFigure()
+            self.signals.updateGraph.emit(5)
             '''
             self.analysisObject.graph_frequencyEvolution.update_figure(figureFrequencyEvolution)
             self.analysisObject.graph_dampingEvolution.update_figure(figureDampingEvolution)
@@ -1730,7 +1753,7 @@ class Worker(QRunnable):
                 savez_compressed(resultFilePreffix+'_'+headerResultFiles[0:3]+'_heatMap.npz', heatMap)     
             '''
             #Set progress bar message
-            #self.analysisObject.progressBar.setFormat('Analysis complete')
+            self.signals.updateProgressBar.emit([100,'Analysis complete'])
             #Update individual file plots
             self.updatePlotInBatchAnalysis=True
             self.run()

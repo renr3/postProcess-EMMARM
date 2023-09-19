@@ -534,7 +534,7 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakP
         ax.legend(loc="upper right", fontsize=plot['fontSize'])
         ax.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
         ax.xaxis.set_minor_locator(MultipleLocator(5))
-        fig.tight_layout()
+        fig.set_tight_layout(True)
 
     if verbose is True:
         print("=================================================================================")
