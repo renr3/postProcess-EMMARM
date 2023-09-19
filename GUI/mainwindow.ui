@@ -61,7 +61,7 @@
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>800</height>
+         <height>650</height>
         </size>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_28">
@@ -688,7 +688,7 @@ frequency</string>
                   </size>
                  </property>
                  <property name="currentIndex">
-                  <number>1</number>
+                  <number>0</number>
                  </property>
                  <widget class="QWidget" name="tab_filtering">
                   <property name="sizePolicy">
@@ -4533,6 +4533,12 @@ li.checked::marker { content: &quot;\2612&quot;; }
                        <width>16777215</width>
                        <height>200</height>
                       </size>
+                     </property>
+                     <property name="frameShape">
+                      <enum>QFrame::Box</enum>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Plain</enum>
                      </property>
                      <property name="sizeAdjustPolicy">
                       <enum>QAbstractScrollArea::AdjustToContents</enum>

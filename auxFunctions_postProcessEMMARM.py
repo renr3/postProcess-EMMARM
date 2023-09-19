@@ -19,6 +19,8 @@ from scipy.optimize import fsolve
 #Module for plotting
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 def readSingleFile(pathForFile, selectedSystem, desiredChannel=1):
     """
@@ -403,9 +405,7 @@ def plotAccelerationTimeSeries(accelerationData, plot={'fontSize': 15, 'fontName
 
     """ 
 
-    fig = plt.figure(figsize=plot['figSize'], dpi=plot['dpi'])
-    plt.close(fig)
-    #fig = plt.figure(figsize=plot['figSize'])
+    fig = Figure(figsize=plot['figSize'], dpi=plot['dpi'])
     ax = fig.add_subplot(111)
 
     for accelerationSeries in accelerationData:
@@ -424,10 +424,9 @@ def plotAccelerationTimeSeries(accelerationData, plot={'fontSize': 15, 'fontName
     ax.set_xlabel("Time (s)", size=plot['fontSize'], fontname=plot['fontName'])
     ax.set_ylabel("Acceleration (g)", size=plot['fontSize'], fontname=plot['fontName'])
     ax.legend()
-    axTemp = plt.gca() 
-    axTemp.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
-    axTemp.xaxis.set_minor_locator(MultipleLocator(5))
-    fig.tight_layout()
+    ax.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
+    ax.xaxis.set_minor_locator(MultipleLocator(5))
+    fig.set_tight_layout(True)
     
     return fig
 
@@ -507,8 +506,8 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakP
 
     fig = None
     if plot['typeForPeakPicking'] != False: #Editted EMM-ARM 22/08/2022: 
-        fig, ax = plt.subplots(1,1,figsize=plot['figSizePeakPicking'], dpi=plot['dpi'])
-        plt.close(fig)
+        fig = Figure(figsize=plot['figSizePeakPicking'], dpi=plot['dpi'])
+        ax = fig.add_subplot(111)
         #Plot PSD
         ax.plot(PSD.f,abs(PSD)[0][0], label="PSD")
         #Plot interval selected for averaging
@@ -535,7 +534,7 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakP
         ax.legend(loc="upper right", fontsize=plot['fontSize'])
         ax.grid(which='both', axis='both', linestyle='-', color='whitesmoke') 
         ax.xaxis.set_minor_locator(MultipleLocator(5))
-        plt.tight_layout()
+        fig.tight_layout()
 
     if verbose is True:
         print("=================================================================================")
