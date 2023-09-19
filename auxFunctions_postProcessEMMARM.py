@@ -601,7 +601,7 @@ def solveCantileverTranscendentalEquation(initialGuess, vibrationFrequency, line
 
     return flexuralStiffness
 
-def findTubeFlexuralStiffnessFromDormantAge(initialGuessFlexuralStiffness, testInfo, tubeFullMassFreeLength, tubeFullLinearMass, ages, vibrationFrequencies, dormantAgeThreshold):
+def findTubeFlexuralStiffnessFromDormantAge(initialGuessFlexuralStiffness, freeCantileverLength, massAtTip, tubeFullMassFreeLength, tubeFullLinearMass, ages, vibrationFrequencies, dormantAgeThreshold):
     """
     This method finds what is the Flexural Stiffness of the tube so that the E-modulus at the dormant age be set equal to zero
 
@@ -625,8 +625,8 @@ def findTubeFlexuralStiffnessFromDormantAge(initialGuessFlexuralStiffness, testI
         #Take the average frequency, which will be used in further computations to set the material modulus during dormant age equal to zero
         averageDormantFrequency = np.mean(np.array(dormantFrequencies))
         #Make an initial guess on the composite flexural stiffness
-        compositeFlexuralStiffnessInitialGuess = ((testInfo['freeCantileverLength'])**3)*(testInfo['massAtTip']+0.24*tubeFullMassFreeLength)*((averageDormantFrequency*2*np.pi)**2)/(3) 
-        adjustedTubeFlexuralStiffness = solveCantileverTranscendentalEquation(compositeFlexuralStiffnessInitialGuess, averageDormantFrequency, tubeFullLinearMass, testInfo['freeCantileverLength'], testInfo['massAtTip'])
+        compositeFlexuralStiffnessInitialGuess = ((freeCantileverLength)**3)*(massAtTip+0.24*tubeFullMassFreeLength)*((averageDormantFrequency*2*np.pi)**2)/(3) 
+        adjustedTubeFlexuralStiffness = solveCantileverTranscendentalEquation(compositeFlexuralStiffnessInitialGuess, averageDormantFrequency, tubeFullLinearMass, freeCantileverLength, massAtTip)
 
     return adjustedTubeFlexuralStiffness
 

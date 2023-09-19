@@ -39,13 +39,13 @@ import auxFunctions_postProcessEMMARM as auxEMMARM #Library with auxiliary funct
 #Temporary variable
 debugActivated=True
 
-class MainWindow(QtWidgets.QMainWindow):
+class modalAnalysis_mainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, *args, **kwargs):
-        super(MainWindow, self).__init__(*args, **kwargs)
+        super(modalAnalysis_mainWindow, self).__init__(*args, **kwargs)
 
         #Load the UI Page
-        uic.loadUi(r'GUI/mainwindow.ui', self)
+        uic.loadUi(r'GUI/modalAnalysis_mainwindow.ui', self)
         
         #Define global properties with default values
         #These values may be used as reference for validating user inputs
@@ -323,14 +323,15 @@ class MainWindow(QtWidgets.QMainWindow):
             selected_file_path, selected_filter = file_dialog.getOpenFileName(self, "Open File", "", file_types)
             #Verify the user has selected an appropriate file extension
             if selected_file_path and selected_file_path.endswith(self.selectedFileExtension[-3:]):
-                print("Selected file:", selected_file_path)
                 self.pathForFile = selected_file_path
                 self.lineEdit_filePath.setText(selected_file_path)
                 self.comboBox_fileVisualized.clear()
                 self.comboBox_fileVisualized.addItems([selected_file_path.split('/')[-1]])
                 print(self.pathForFile) if debugActivated else None   
             else:
-                print("Error opening file: please select a", self.selectedFileExtension[-3:]," file.")
+                #TODO: implement textBrowser_log messages instead of print
+                message = ">{0}: Error opening file: please select a .{1} file.".format(datetime.datetime.now(),self.selectedFileExtension[-3:])
+                self.textBrowser_log.append(message)
                 self.pathForFile = None
         elif self.selectedProcessing == 'batchProcessing':
             # Show the folder dialog and get the selected folder path
@@ -345,8 +346,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.comboBox_fileVisualized.clear()
                 self.comboBox_fileVisualized.addItems(self.filesToRead)
                 self.comboBox_fileVisualized.setCurrentIndex(0)
+            else:
+                message = ">{0}: Please select a folder containing .{1} files.".format(datetime.datetime.now(),self.selectedFileExtension[-3:])
+                self.textBrowser_log.append(message)
+                self.pathForFile = None
     def updateCurrentAnalysisConfiguration(self):
-        self.currentAnalysisConfiguration['pathForFIle']=self.pathForFile
+        self.currentAnalysisConfiguration['pathForFile']=self.pathForFile
         self.currentAnalysisConfiguration['fileVisualizedPath']=self.fileVisualizedPath
         self.currentAnalysisConfiguration['filesToRead']=self.filesToRead
         self.currentAnalysisConfiguration['selectedFileType']=self.selectedFileType
@@ -372,7 +377,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.currentAnalysisConfiguration['tol']=self.tol.tolist()
         self.currentAnalysisConfiguration['plotConfiguration']=self.plotConfiguration
     def readCurrentAnalysisConfiguration(self):
-        self.pathForFile=self.currentAnalysisConfiguration['pathForFIle']
+        self.pathForFile=self.currentAnalysisConfiguration['pathForFile']
         self.fileVisualizedPath=self.currentAnalysisConfiguration['fileVisualizedPath']
         self.filesToRead=self.currentAnalysisConfiguration['filesToRead']
         self.selectedFileType=self.currentAnalysisConfiguration['selectedFileType']
@@ -405,13 +410,14 @@ class MainWindow(QtWidgets.QMainWindow):
         selected_folder_path = file_dialog.getExistingDirectory(self, "Select Folder", "")
         # Process the selected folder (e.g., print the folder path)
         if selected_folder_path:
-            self.pathForFile = selected_folder_path
             self.lineEdit_filePathFrequencyEvolution.setText(selected_folder_path)
-            print(self.pathForFile) if debugActivated else None 
+            print(selected_folder_path) if debugActivated else None 
     def updateFrequencyEvolutionPath(self, new_value):
         if os.path.exists(new_value):
             self.toolButton_exportFrequencyEvolution.setEnabled(True)
         else:
+            message = ">{0}: Folder does not exist. Please select an existing folder.".format(datetime.datetime.now())
+            self.textBrowser_log.append(message)
             self.toolButton_exportFrequencyEvolution.setEnabled(False)
     def exportFrequencyEvolution(self):
         saveFilePrefix=self.lineEdit_filePathFrequencyEvolution.text()+'/'+self.lineEdit_fileNameFrequencyEvolution.text()
@@ -430,13 +436,14 @@ class MainWindow(QtWidgets.QMainWindow):
         selected_folder_path = file_dialog.getExistingDirectory(self, "Select Folder", "")
         # Process the selected folder (e.g., print the folder path)
         if selected_folder_path:
-            self.pathForFile = selected_folder_path
             self.lineEdit_filePathDampingEvolution.setText(selected_folder_path)
-            print(self.pathForFile) if debugActivated else None 
+            print(selected_folder_path) if debugActivated else None 
     def updateDampingEvolutionPath(self, new_value):
         if os.path.exists(new_value):
             self.toolButton_exportDampingEvolution.setEnabled(True)
         else:
+            message = ">{0}: Folder does not exist. Please select an existing folder.".format(datetime.datetime.now())
+            self.textBrowser_log.append(message)
             self.toolButton_exportDampingEvolution.setEnabled(False)
     def exportDampingEvolution(self):
         saveFilePrefix=self.lineEdit_filePathDampingEvolution.text()+'/'+self.lineEdit_fileNameDampingEvolution.text()
@@ -1287,10 +1294,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.checkBox_activate_SSI.setChecked(True)
 
         #self.plotConfiguration=self.currentAnalysisConfiguration['plotConfiguration']
-    def collapse_widget(splitter, widget_index):
-        sizes = splitter.sizes()
-        sizes[widget_index] = 0  # Set the size of the widget you want to collapse to 0
-        splitter.setSizes(sizes)
 
 class plotConfigDlg(QDialog):
     def __init__(self, parent=None):
@@ -1757,6 +1760,7 @@ class Worker(QRunnable):
                     savez_compressed(resultFilePreffix+'_'+headerResultFiles[0:3]+'_heatMap.npz', heatMap)     
                 '''
                 #Set progress bar message
+                self.signals.updateProgressBar.emit([100,'percentage'])
                 self.signals.updateProgressBar.emit([100,'Analysis complete'])
                 #Update individual file plots
                 self.updatePlotInBatchAnalysis=True
@@ -1769,9 +1773,9 @@ class Worker(QRunnable):
             self.signals.updateLogMessage.emit(logMessage)
 
 def main():
-    app = QtWidgets.QApplication(sys.argv)
 
-    main = MainWindow()
+    app = QtWidgets.QApplication(sys.argv)
+    main = modalAnalysis_mainWindow()
     main.show()
     sys.exit(app.exec())
 
