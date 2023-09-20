@@ -21,7 +21,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>icon/favicon.ico</normaloff>icon/favicon.ico</iconset>
+    <normaloff>icon/EMMARM-postprocess.png</normaloff>icon/EMMARM-postprocess.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_34">
