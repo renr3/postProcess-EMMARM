@@ -1,8 +1,5 @@
-.venv/
-venv/
-.venv_old/
-CESSIPY-main/
-exampleFiles/
+GUI_version/source/.venv
+GUI_version/source/__pycache__
 Sandbox/
 __pycache__/
 /sandbox_postProcessEMMARM_Thomas.ipynb
