@@ -1,10 +1,7 @@
-.venv/
-venv/
-.venv_old/
-CESSIPY-main/
+GUI_version/source/.venv
+GUI_version/source/__pycache__
 Sandbox/
 __pycache__/
 /sandbox_postProcessEMMARM_Thomas.ipynb
 /auxFunctions_postProcessEMMARM_Thomas.py
-/sandbox_postProcessEMMARM.ipynb
 /plotEModulusResults_uEMMARMPaper.py
