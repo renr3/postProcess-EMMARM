@@ -1,0 +1,9 @@
++1 - when someone pressess RUN ANALYSIS, these improvements should be:
+1.1 - "log" should say analysis has started
+1.2 - "Run analysis" button should be grey-out
+1.3 - "Loading bar" should not be 0% at the start of the software
+
+2 - In a batch analysis, when an error occurs in the middle of the processing, 
+the analysis should not be entirely lost, but partial results should be plotted and allowed to be saved
+
+3 - Import and export configuration seems to be buggy?
