@@ -92,7 +92,7 @@ def readBatchFile(folderPath, files, selectedSystem, desiredChannel=1):
     """ 
     #Select the type of system
     if selectedSystem == "National":
-        acceleration = pd.read_table(folderPath+"/"+files, names=["accel_"+str(i+1) for i in range(0,2)]) #range(0,2) because national will always provide 2 valued accel files
+        acceleration = pd.read_table(folderPath+"/"+files, names=["accel_"+str(i+1) for i in range(0,4)]) #range(0,2) because national will always provide 2 valued accel files
         acceleration=acceleration.to_numpy().T[desiredChannel-1]
     elif selectedSystem == "old_uEMMARM":
         acceleration = pd.read_table(folderPath+"/"+files, names=["accel_0"])
@@ -103,10 +103,10 @@ def readBatchFile(folderPath, files, selectedSystem, desiredChannel=1):
         data = np.fromfile(folderPath+"/"+files, dtype=dt)
         acceleration = pd.DataFrame(data)[5:] #Ignore beggning of monitoring cause some instability of the system produces weird resutls
         acceleration=acceleration.to_numpy().T[desiredChannel-1]
-    elif selectedSystem == "RPi":
+    elif selectedSystem == "RaspberryPi":
         acceleration = pd.read_csv(folderPath+"/"+files)
         acceleration=acceleration.to_numpy().T[desiredChannel-1]
-        acceleration=np.array([float(value[1:-2]) for value in acceleration])
+        #acceleration=np.array([float(value[1:-2]) for value in acceleration])
     else:
         raise Exception('ERROR: Selected system is not implemented in this version')
     
@@ -211,24 +211,24 @@ def getAgeAtMeasurementBatchFile(folderPath, files, firstMeasurementFile, select
 
         # Compute the difference in time
         # Account for delay in the beggining of the test
-    elif selectedSystem == "RPi":
+    elif selectedSystem == "RaspberryPi":
         #The isntant of measurement for the National system is stored in the file name.
-        currentSeconds = 10*int(files[-6]) + int(files[-5])
-        currentMinutes = 10*int(files[-9]) + int(files[-8])
-        currentHours = 10*int(files[-12]) + int(files[-11])
-        currentDay = 10*int(files[-15]) + int(files[-14])
-        currentMonth = 10*int(files[-18]) + int(files[-17])
-        currentYear = 2000+10*int(files[-21]) + int(files[-20])
+        currentSeconds = 10*int(files[17]) + int(files[18])
+        currentMinutes = 10*int(files[14]) + int(files[15])
+        currentHours = 10*int(files[11]) + int(files[12])
+        currentDay = 10*int(files[8]) + int(files[9])
+        currentMonth = 10*int(files[5]) + int(files[6])
+        currentYear = 2000+10*int(files[2]) + int(files[3])
         currentTime = datetime(year=currentYear, month=currentMonth, day=currentDay,
                                 hour=currentHours, minute=currentMinutes, second=currentSeconds, microsecond=0, tzinfo=None, fold=0)
 
         #The isntant of measurement for the National system is stored in the file name.
-        initialSeconds = 10*int(firstMeasurementFile[-6]) + int(firstMeasurementFile[-5])
-        initialMinutes = 10*int(firstMeasurementFile[-9]) + int(firstMeasurementFile[-8])
-        initialHours = 10*int(firstMeasurementFile[-12]) + int(firstMeasurementFile[-11])
-        initialDay = 10*int(firstMeasurementFile[-15]) + int(firstMeasurementFile[-14])
-        initialMonth = 10*int(firstMeasurementFile[-18]) + int(firstMeasurementFile[-17])
-        initialYear = 2000+10*int(firstMeasurementFile[-21]) + int(firstMeasurementFile[-20])
+        initialSeconds = 10*int(firstMeasurementFile[17]) + int(firstMeasurementFile[18])
+        initialMinutes = 10*int(firstMeasurementFile[14]) + int(firstMeasurementFile[15])
+        initialHours = 10*int(firstMeasurementFile[11]) + int(firstMeasurementFile[12])
+        initialDay = 10*int(firstMeasurementFile[8]) + int(firstMeasurementFile[9])
+        initialMonth = 10*int(firstMeasurementFile[5]) + int(firstMeasurementFile[6])
+        initialYear = 2000+10*int(firstMeasurementFile[2]) + int(firstMeasurementFile[3])
         initialTime = datetime(year=initialYear, month=initialMonth, day=initialDay,
                                 hour=initialHours, minute=initialMinutes, second=initialSeconds, microsecond=0, tzinfo=None, fold=0)
     # Compute the difference in time
