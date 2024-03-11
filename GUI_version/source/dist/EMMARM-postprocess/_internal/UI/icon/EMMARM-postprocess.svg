@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="29.674408mm"
+   height="24.279604mm"
+   viewBox="0 0 29.674408 24.279604"
+   version="1.1"
+   id="svg1101"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   sodipodi:docname="EMMARM-postprocess.svg"
+   inkscape:export-filename="EMMARM-postprocess.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1103"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="4.2482356"
+     inkscape:cx="38.957349"
+     inkscape:cy="38.721958"
+     inkscape:window-width="1920"
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="1341"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g2840" />
+  <defs
+     id="defs1098">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient2166">
+      <stop
+         style="stop-color:#c00000;stop-opacity:1;"
+         offset="0"
+         id="stop2162" />
+      <stop
+         style="stop-color:#548235;stop-opacity:1;"
+         offset="0.5"
+         id="stop2722" />
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="1"
+         id="stop2864" />
+      <stop
+         style="stop-color:#000000;stop-opacity:0;"
+         offset="1"
+         id="stop2164" />
+    </linearGradient>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath400">
+      <path
+         d="M 8.871e-6,0 H 595.32001 V 841.92 H 8.871e-6 Z"
+         clip-rule="evenodd"
+         id="path398" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath704">
+      <path
+         d="M 8.871e-6,611.28 H 595.32001 v 86.76 H 8.871e-6 Z"
+         clip-rule="evenodd"
+         id="path702" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath714">
+      <path
+         d="M 0,0 H 96.372 V 65.538 H 0 Z"
+         id="path712" />
+    </clipPath>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2166"
+       id="linearGradient2168"
+       x1="201.18674"
+       y1="630.96049"
+       x2="299.91938"
+       y2="630.96049"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-82.048917,-93.906456)">
+    <g
+       id="g1957"
+       transform="matrix(0.26669018,0,0,-0.26669018,17.511123,277.95763)"
+       style="stroke-width:1.3228">
+      <g
+         id="g2709"
+         transform="translate(-51.505666,-3.5422795)"
+         style="stroke-width:1.3228">
+        <g
+           id="g2840"
+           transform="translate(50.77226,-0.20493553)"
+           style="stroke-width:1.3228">
+          <g
+             id="g394"
+             transform="translate(47.810347,-20.922319)"
+             style="stroke-width:1.3228;fill:url(#linearGradient2168);fill-opacity:1"
+             inkscape:export-filename="EMMARM-postprocess.png"
+             inkscape:export-xdpi="96"
+             inkscape:export-ydpi="96">
+            <g
+               id="g396"
+               clip-path="url(#clipPath400)"
+               style="stroke-width:1.3228;fill:url(#linearGradient2168);fill-opacity:1">
+              <text
+                 xml:space="preserve"
+                 transform="scale(1,-1)"
+                 style="font-variant:normal;font-weight:bold;font-size:16.02px;font-family:NewsGotT;-inkscape-font-specification:'NewsGotT Bold';writing-mode:lr-tb;fill:url(#linearGradient2168);fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.3228"
+                 id="text404"
+                 x="200.09944"
+                 y="-626.92029"><tspan
+                   sodipodi:role="line"
+                   id="tspan402"
+                   x="200.09944"
+                   y="-626.92029"
+                   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:url(#linearGradient2168);fill-opacity:1;stroke-width:1.3228">post-process</tspan></text>
+            </g>
+          </g>
+          <g
+             id="g698"
+             style="stroke-width:1.3228">
+            <g
+               id="g700"
+               clip-path="url(#clipPath704)"
+               style="stroke-width:1.3228">
+              <g
+                 id="g706"
+                 transform="matrix(1.6275,-7.54e-7,-3.77e-7,1.1067,239.04,618.36)"
+                 style="stroke-width:1.3228">
+                <g
+                   id="g708"
+                   transform="scale(0.74711,1.0986)"
+                   style="stroke-width:1.3228">
+                  <g
+                     id="g710"
+                     clip-path="url(#clipPath714)"
+                     style="stroke-width:1.3228">
+                    <text
+                       xml:space="preserve"
+                       transform="scale(1,-1)"
+                       style="font-variant:normal;font-weight:900;font-size:24.048px;font-family:Arial;-inkscape-font-specification:'Arial Heavy';writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.3228"
+                       id="text718"
+                       x="68.364952"
+                       y="-8.386076"><tspan
+                         x="68.364952"
+                         y="-8.386076"
+                         id="tspan716"
+                         style="stroke-width:1.3228">M</tspan></text>
+                    <text
+                       xml:space="preserve"
+                       transform="scale(1,-1)"
+                       style="font-variant:normal;font-weight:900;font-size:24.024px;font-family:Arial;-inkscape-font-specification:'Arial Heavy';writing-mode:lr-tb;fill:#c00000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.3228"
+                       id="text722"
+                       x="8.5043249"
+                       y="-8.3946667"><tspan
+                         x="8.5043249"
+                         y="-8.3946667"
+                         id="tspan720"
+                         style="stroke-width:1.3228">A</tspan></text>
+                    <text
+                       xml:space="preserve"
+                       transform="scale(1,-1)"
+                       style="font-variant:normal;font-weight:900;font-size:24.048px;font-family:Arial;-inkscape-font-specification:'Arial Heavy';writing-mode:lr-tb;fill:#548235;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.3228"
+                       id="text726"
+                       x="38.4911"
+                       y="-8.386076"><tspan
+                         x="38.4911"
+                         y="-8.386076"
+                         id="tspan724"
+                         style="stroke-width:1.3228">R</tspan></text>
+                    <path
+                       d="m 3.6687,33.793 h 28.44 v 28.32 h -28.44 z"
+                       style="fill:#548235;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1.3228"
+                       id="path728" />
+                    <path
+                       d="m 34.629,33.793 h 28.32 v 28.32 h -28.32 z"
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1.3228"
+                       id="path730" />
+                    <path
+                       d="m 65.589,33.793 h 28.32 v 28.32 h -28.32 z"
+                       style="fill:#c00000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1.3228"
+                       id="path732" />
+                    <path
+                       d="m 34.629,2.8331 h 28.32 v 28.32 h -28.32 z"
+                       style="fill:none;stroke:#548235;stroke-width:1.26989;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+                       id="path734" />
+                    <path
+                       d="m 65.589,2.8331 h 28.32 v 28.32 h -28.32 z"
+                       style="fill:none;stroke:#000000;stroke-width:1.26989;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+                       id="path736" />
+                    <path
+                       d="m 3.6687,2.8331 h 28.44 v 28.32 h -28.44 z"
+                       style="fill:none;stroke:#c00000;stroke-width:1.26989;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+                       id="path738" />
+                    <text
+                       xml:space="preserve"
+                       transform="scale(1,-1)"
+                       style="font-variant:normal;font-weight:900;font-size:24.024px;font-family:Arial;-inkscape-font-specification:'Arial Heavy';writing-mode:lr-tb;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.3228"
+                       id="text742"
+                       x="37.416309"
+                       y="-39.354565"><tspan
+                         x="37.416309"
+                         y="-39.354565"
+                         id="tspan740"
+                         style="stroke-width:1.3228">M</tspan></text>
+                    <text
+                       xml:space="preserve"
+                       transform="scale(1,-1)"
+                       style="font-variant:normal;font-weight:900;font-size:24.048px;font-family:Arial;-inkscape-font-specification:'Arial Heavy';writing-mode:lr-tb;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.3228"
+                       id="text746"
+                       x="68.364952"
+                       y="-39.345978"><tspan
+                         x="68.364952"
+                         y="-39.345978"
+                         id="tspan744"
+                         style="stroke-width:1.3228">M</tspan></text>
+                    <text
+                       xml:space="preserve"
+                       transform="scale(1,-1)"
+                       style="font-variant:normal;font-weight:900;font-size:24.024px;font-family:Arial;-inkscape-font-specification:'Arial Heavy';writing-mode:lr-tb;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.3228"
+                       id="text750"
+                       x="8.8914309"
+                       y="-39.354565"><tspan
+                         x="8.8914309"
+                         y="-39.354565"
+                         id="tspan748"
+                         style="stroke-width:1.3228">E</tspan></text>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
