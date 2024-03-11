@@ -613,6 +613,10 @@ def stabilization_diagram(FN, ZT, VV,
     """
     Compute the stable poles and plot the stabilization diagram
     
+    Obs: In relation to the original CESSIPy implementation, this version changed the fact that all variables in tol that are percentages
+    are here to be specified as % (for example, if 100%, it should be 100, not 1). This is valid for Δf, Δksi, ksimin, ksimax. This reflects
+    in these values being divided by 100.0 along the algorithm, which was not made in the original implementation
+
     Parameters
     -------     
     FN, ZT, VV
@@ -623,8 +627,8 @@ def stabilization_diagram(FN, ZT, VV,
         Rows: frequencies, damping ratios and MAC values respectively.
         Columns: percentage tolerance, minimum and maximum values respectively.
         Default is:
-        [0.01,0,100 ] Δf = 1%; fmin = 0 Hz; fmax = 100 Hz
-        [0.05,0,0.05] Δksi = 5%; ksimin = 0%;   ksimax = 5%
+        [1,0,100 ] Δf = 1%; fmin = 0 Hz; fmax = 100 Hz
+        [5,0,5] Δksi = 5%; ksimin = 0%;   ksimax = 5%
         [0.10,0,1   ] MAC >= (1 - 0.10) = 0.90     
     plot : dictionary, optional #Editted EMM-ARM
     PSD: a PSD object that is returned by .SDM function, optional. Only mandatory when 'typeForStabilizationDiagram'='StabilizationPSD'.
@@ -643,7 +647,9 @@ def stabilization_diagram(FN, ZT, VV,
     First stb index refers to model order. For example, the last stable poles
     row stb[-1,:] originates from nmax model order.
     """
-    
+
+    print("Tol effectively used in the analysis")
+    print(tol)
     nmin = np.count_nonzero(FN, axis=1)[0]
     nmax = np.count_nonzero(FN, axis=1)[-1]
     incr = (nmax-nmin)//(FN.shape[0]-1)
@@ -663,7 +669,7 @@ def stabilization_diagram(FN, ZT, VV,
         dif = FN[ia,:na] - FN[ii,:no].reshape(-1,1) #EMM-ARM (19/08/22): Compute the differences between eigenfrequencies of the current model order and the previous model order
         ind = np.abs(dif).argmin(axis=1) #EMM-ARM (19/08/22): for each eigenfrequency of the current model order, check to what eigenfrequency of the previous model order it was closest to
         res = np.diagonal(dif[:,ind]) #EMM-ARM (19/08/22): constructs an array containing the lowest difference of each eigenfrequency of the current model order to an eigenfrequency of the last model ORDER
-        b1 = (np.abs(res/FN[ii,:no]) < tol[0,0]) & b1 #EMM-ARM (19/08/22): while also selecting already the eigenfrequencies on the range of interest (as made in the first definition of b1), this line will also select only the eigenfrequencies that depart a maximum of tol[0,0] from an eigenfrequency of the previous model order
+        b1 = (np.abs(res/FN[ii,:no]) < tol[0,0]/100.0) & b1 #EMM-ARM (19/08/22): while also selecting already the eigenfrequencies on the range of interest (as made in the first definition of b1), this line will also select only the eigenfrequencies that depart a maximum of tol[0,0] from an eigenfrequency of the previous model order
 
         #EMM-ARM (19/08/22): In the original version of CESSIPy, an eigenfrequency of a given model order was considered stable if it didn't depart more from any eigenfrequency of the previous model order than the maximum estipulated in the tolerance vector. In order words, the comparation is only done considering the imediately previous model, and no implementation of stability level, such as in KOMA, exists. But based on Peeters PhD thesis, this is the standard approach
         if verbose == True:
@@ -684,10 +690,10 @@ def stabilization_diagram(FN, ZT, VV,
         
         # Damping ratios
         
-        b2 = (ZT[ii,:no] >= tol[1,1]) & (ZT[ii,:no] <= tol[1,2])
+        b2 = (ZT[ii,:no] >= tol[1,1]/100.0) & (ZT[ii,:no] <= tol[1,2]/100.0)
         dif = ZT[ia,:na] - ZT[ii,:no].reshape(-1,1)
         res = np.diagonal(dif[:,ind])
-        b2 = (np.abs(res/ZT[ii,:no]) < tol[1,0]) & b2 & b1      
+        b2 = (np.abs(res/ZT[ii,:no]) < tol[1,0]/100.0) & b2 & b1      
         
         # MAC
                

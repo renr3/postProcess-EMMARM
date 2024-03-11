@@ -207,8 +207,8 @@ class modalAnalysis_mainWindow(QtWidgets.QMainWindow):
         self.lineEdit_stabTolFrequency_allowedVariation_SSI.textChanged.connect(self.update_tol_frequencyVariation)
         self.lineEdit_stabTolFrequency_lowerBound_SSI.textChanged.connect(self.update_tol_frequencyLowerBound)
         self.lineEdit_stabTolFrequency_upperBound_SSI.textChanged.connect(self.update_tol_frequencyUpperBound)
-        self.lineEdit_stabTolDamping_allowedVariation_SSI.textChanged.connect(self.update_tol_dampingUpperBound)
-        self.lineEdit_stabTolDamping_lowerBound_SSI.textChanged.connect(self.update_tol_dampingUpperBound)
+        self.lineEdit_stabTolDamping_allowedVariation_SSI.textChanged.connect(self.update_tol_dampingVariation)
+        self.lineEdit_stabTolDamping_lowerBound_SSI.textChanged.connect(self.update_tol_dampingLowerBound)
         self.lineEdit_stabTolDamping_upperBound_SSI.textChanged.connect(self.update_tol_dampingUpperBound)
         self.pushButton_graphicalConfig_SSI.clicked.connect(lambda checked: self.openPlotConfigurationDialog(tab=4))
 
@@ -253,6 +253,9 @@ class modalAnalysis_mainWindow(QtWidgets.QMainWindow):
                 self.currentAnalysisConfiguration=json.load(file)  # encode dict into JSON
             self.readCurrentAnalysisConfiguration()
             self.updateGUIDisplayValues()
+            #Display current analysis configuration in the log console
+            logMessage = json.dumps(self.currentAnalysisConfiguration)
+            self.textBrowser_log.append(logMessage)
         except Exception as e:
             # Print the exception error message
             logMessage = ">{0}: An error has occurred. This may be due to bad input file. Exception description: \n {1}".format(datetime.datetime.now(),traceback.format_exc())
@@ -821,12 +824,12 @@ class modalAnalysis_mainWindow(QtWidgets.QMainWindow):
             self.startingOrderNumber = self.spinBox_startingModelOrder_SSI.value()
             self.endOrderNumber = self.spinBox_endingModelOrder_SSI.value()
             self.incrementBetweenOrder = self.spinBox_orderIncrement_SSI.value()
-            self.tol[0][0] = self.try_float(self.lineEdit_stabTolFrequency_allowedVariation_SSI.text())/100.0 
+            self.tol[0][0] = self.try_float(self.lineEdit_stabTolFrequency_allowedVariation_SSI.text())
             self.tol[0][1] = self.try_float(self.lineEdit_stabTolFrequency_lowerBound_SSI.text()) 
             self.tol[0][2] = self.try_float(self.lineEdit_stabTolFrequency_upperBound_SSI.text()) 
-            self.tol[1][0] = self.try_float(self.lineEdit_stabTolDamping_allowedVariation_SSI.text())/100.0 
-            self.tol[1][1] = self.try_float(self.lineEdit_stabTolDamping_lowerBound_SSI.text())/100.0 
-            self.tol[1][2] = self.try_float(self.lineEdit_stabTolDamping_upperBound_SSI.text())/100.0 
+            self.tol[1][0] = self.try_float(self.lineEdit_stabTolDamping_allowedVariation_SSI.text())
+            self.tol[1][1] = self.try_float(self.lineEdit_stabTolDamping_lowerBound_SSI.text())
+            self.tol[1][2] = self.try_float(self.lineEdit_stabTolDamping_upperBound_SSI.text())
             print("SSI-COV is checked") if debugActivatedForDevelopment else None
         else:
             #If the checkBox is unchecked, then we need to update the self.modalIdentificationMethodToPerform dict
@@ -875,7 +878,7 @@ class modalAnalysis_mainWindow(QtWidgets.QMainWindow):
         print("update_incrementBetweenOrder:",self.incrementBetweenOrder) if debugActivatedForDevelopment else None  
     def update_tol_frequencyVariation(self,new_value):
         try:
-            self.tol[0][0]=self.try_float(new_value)/100.0
+            self.tol[0][0]=self.try_float(new_value)
         except Exception as e:
             #Expection to deal with when the field is empty
             self.tol[0][0]=None
@@ -896,21 +899,21 @@ class modalAnalysis_mainWindow(QtWidgets.QMainWindow):
         print("tol:",self.tol) if debugActivatedForDevelopment else None
     def update_tol_dampingVariation(self,new_value):
         try:
-            self.tol[1][0]=self.try_float(new_value)/100.0
+            self.tol[1][0]=self.try_float(new_value)
         except Exception as e:
             #Expection to deal with when the field is empty
             self.tol[1][0]=None
         print("tol:",self.tol) if debugActivatedForDevelopment else None
     def update_tol_dampingLowerBound(self,new_value):
         try:
-            self.tol[1][1]=self.try_float(new_value)/100.0
+            self.tol[1][1]=self.try_float(new_value)
         except Exception as e:
             #Expection to deal with when the field is empty
             self.tol[1][1]=None
         print("tol:",self.tol) if debugActivatedForDevelopment else None
     def update_tol_dampingUpperBound(self,new_value):
         try:
-            self.tol[1][2]=self.try_float(new_value)/100.0
+            self.tol[1][2]=self.try_float(new_value)
         except Exception as e:
             #Expection to deal with when the field is empty
             self.tol[1][2]=None
@@ -1371,12 +1374,19 @@ class Worker(QRunnable):
     @pyqtSlot()
     def run(self):       
         #Perform the competent analysis
+        #TODO: Implement a way to interrupt analysis in the middle of it
         try:
+            #Make "Run Analysis" button be disabled
+            self.analysisObject.pushButton_runAnalysis.setEnabled(False)
             if self.analysisObject.selectedProcessing == 'singleFile' or (self.updatePlotInBatchAnalysis is True): 
                 #Initial processing common to any modal analysis method selected
                 #Check if this call is in a single file analysis, or the update of graphs in batch analysis
                 self.signals.updateProgressBar.emit([0,'percentage'])
                 if self.updatePlotInBatchAnalysis is False:
+                    #Log indicates to user the analysis has begun
+                    logMessage = ">{0}: Analysis has started!".format(datetime.datetime.now())
+                    self.signals.updateLogMessage.emit(logMessage)
+
                     accelerationDigital = auxEMMARM.readSingleFile(self.analysisObject.pathForFile, self.analysisObject.selectedSystem,self.analysisObject.desiredChannel)
                     acceleration = auxEMMARM.convertToG(accelerationDigital,self.analysisObject.calibrationFactor, self.analysisObject.selectedSystem)
                     if self.analysisObject.selectedSystem == 'uEMMARM':
@@ -1387,6 +1397,10 @@ class Worker(QRunnable):
                         #Sampling frequency has been informed by the user
                         pass
                 else:
+                    #Log indicates to user the analysis has begun
+                    logMessage = ">{0}: Updating plot windows!".format(datetime.datetime.now())
+                    self.signals.updateLogMessage.emit(logMessage)
+
                     accelerationDigital = auxEMMARM.readSingleFile(self.analysisObject.fileVisualizedPath, self.analysisObject.selectedSystem,self.analysisObject.desiredChannel)
                     print(self.analysisObject.fileVisualizedPath) #Rockstar!
                     print(np.mean(accelerationDigital)) #Rockstar!
@@ -1492,6 +1506,9 @@ class Worker(QRunnable):
                     self.signals.updateProgressBar.emit([100,'Analysis complete'])
                     self.analysisObject.progressBar.setFormat('Analysis complete')
             elif self.analysisObject.selectedProcessing == 'batchProcessing':
+                #Log indicates to user the analysis has begun
+                logMessage = ">{0}: Analysis has started!".format(datetime.datetime.now())
+                self.signals.updateLogMessage.emit(logMessage)
 
                 self.analysisObject.agesOfMeasurementOriginal = np.zeros(len(self.analysisObject.filesToRead)) 
 
@@ -1564,7 +1581,9 @@ class Worker(QRunnable):
                     if self.analysisObject.modalIdentificationMethodToPerform['SSI-COV']==True:
                         yk = SSI.rearrange_data(yk,self.analysisObject.refs) 
                         FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL = SSI.SSI_COV_iterator(yk,self.analysisObject.i,self.analysisObject.startingOrderNumber, self.analysisObject.endOrderNumber, self.analysisObject.incrementBetweenOrder, plot=False)
+                        print(self.analysisObject.tol)
                         ignoreThis, stableModes = SSI.stabilization_diagram(FSSI_MODEL,ZSSI_MODEL,VSSI_MODEL, tol=self.analysisObject.tol, PSD=PSD, verbose=False)
+                        #TODO: Implement in the GUI a way for the user to control the tol and spo parameters, which dictates the way the algorithm makes the cluster analysis
                         FSSI, ZSSI, VSSI, numStablePoles = SSI.stable_modes(FSSI_MODEL, ZSSI_MODEL, VSSI_MODEL, stableModes, tol=0.01, spo=10, verbose=False,numStablePoles=self.analysisObject.numModesToBeConsidered)
                         eigenfrequenciesIndices = np.flip(np.argsort(numStablePoles))
                         for r, l in enumerate(np.take_along_axis(FSSI, eigenfrequenciesIndices, 0)[0:self.analysisObject.numModesToBeConsidered]): self.analysisObject.FSSI_CLUSTER[iteration][r]=l
@@ -1630,12 +1649,25 @@ class Worker(QRunnable):
                 #Update individual file plots
                 self.updatePlotInBatchAnalysis=True
                 self.run()
+            #Make "Run Analysis" button be enabled
+            self.analysisObject.pushButton_runAnalysis.setEnabled(True)
         except Exception as e:
+            #Make "Run Analysis" button be enabled
+            self.analysisObject.pushButton_runAnalysis.setEnabled(True)
             # Print the exception error message
             self.signals.updateProgressBar.emit([100,'percentage'])
             self.signals.updateProgressBar.emit([0,'Error has occurred'])
             logMessage = ">{0}: An exception occurred. This may be due to bad input. Exception description: \n {1}".format(datetime.datetime.now(),traceback.format_exc())
             self.signals.updateLogMessage.emit(logMessage)
+            if (self.analysisObject.selectedProcessing != 'singleFile') and (self.updatePlotInBatchAnalysis is False):
+                if (iteration>0): 
+                    #Even in the case some Exception was thrown in the middle of a Batch Analysis, update plots if possible
+                    #This do not happens if analysis is singleFIle, iteration=0, or updatePlotInBatchAnalysis is True because then a loop hole would occur
+                    #8) PLOT RESULTS IN FREQUENCY EVOLUTION TAB
+                    self.signals.updateGraph.emit(5)
+                    #Update individual file plots
+                    self.updatePlotInBatchAnalysis=True
+                    self.run()
 
 def main():
 
