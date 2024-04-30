@@ -9,7 +9,7 @@ import os
 import pandas as pd
 
 #Modal library modules
-import CESSIPy_modEMMARM as SSI 
+import CESSIPy_modRenan as SSI 
 from MRPy import MRPy #Library with modal analysis functions
 from scipy.signal import detrend, welch, resample, decimate, find_peaks, butter, sosfilt
 
@@ -56,7 +56,7 @@ def readSingleFile(pathForFile, selectedSystem, desiredChannel=1):
         dt = np.dtype([("accel_1", 'i2')])
         data = np.fromfile(pathForFile, dtype=dt)
         acceleration = pd.DataFrame(data)[5:] #Ignore beggning of monitoring cause some instability of the system produces weird resutls
-    elif selectedSystem == "RaspberryPi":
+    elif selectedSystem == "RPi":
         acceleration = pd.read_csv(pathForFile)
     else:
         raise Exception('ERROR: Selected system is not implemented in this version')
@@ -92,7 +92,7 @@ def readBatchFile(folderPath, files, selectedSystem, desiredChannel=1):
     """ 
     #Select the type of system
     if selectedSystem == "National":
-        acceleration = pd.read_table(folderPath+"/"+files, names=["accel_"+str(i+1) for i in range(0,4)]) #range(0,2) because national will always provide 2 valued accel files
+        acceleration = pd.read_table(folderPath+"/"+files, names=["accel_"+str(i+1) for i in range(0,2)]) #range(0,2) because national will always provide 2 valued accel files
         acceleration=acceleration.to_numpy().T[desiredChannel-1]
     elif selectedSystem == "old_uEMMARM":
         acceleration = pd.read_table(folderPath+"/"+files, names=["accel_0"])
@@ -103,10 +103,10 @@ def readBatchFile(folderPath, files, selectedSystem, desiredChannel=1):
         data = np.fromfile(folderPath+"/"+files, dtype=dt)
         acceleration = pd.DataFrame(data)[5:] #Ignore beggning of monitoring cause some instability of the system produces weird resutls
         acceleration=acceleration.to_numpy().T[desiredChannel-1]
-    elif selectedSystem == "RaspberryPi":
+    elif selectedSystem == "RPi":
         acceleration = pd.read_csv(folderPath+"/"+files)
         acceleration=acceleration.to_numpy().T[desiredChannel-1]
-        #acceleration=np.array([float(value[1:-2]) for value in acceleration])
+        acceleration=np.array([float(value[1:-2]) for value in acceleration])
     else:
         raise Exception('ERROR: Selected system is not implemented in this version')
     
@@ -211,24 +211,24 @@ def getAgeAtMeasurementBatchFile(folderPath, files, firstMeasurementFile, select
 
         # Compute the difference in time
         # Account for delay in the beggining of the test
-    elif selectedSystem == "RaspberryPi":
+    elif selectedSystem == "RPi":
         #The isntant of measurement for the National system is stored in the file name.
-        currentSeconds = 10*int(files[17]) + int(files[18])
-        currentMinutes = 10*int(files[14]) + int(files[15])
-        currentHours = 10*int(files[11]) + int(files[12])
-        currentDay = 10*int(files[8]) + int(files[9])
-        currentMonth = 10*int(files[5]) + int(files[6])
-        currentYear = 2000+10*int(files[2]) + int(files[3])
+        currentSeconds = 10*int(files[-6]) + int(files[-5])
+        currentMinutes = 10*int(files[-9]) + int(files[-8])
+        currentHours = 10*int(files[-12]) + int(files[-11])
+        currentDay = 10*int(files[-15]) + int(files[-14])
+        currentMonth = 10*int(files[-18]) + int(files[-17])
+        currentYear = 2000+10*int(files[-21]) + int(files[-20])
         currentTime = datetime(year=currentYear, month=currentMonth, day=currentDay,
                                 hour=currentHours, minute=currentMinutes, second=currentSeconds, microsecond=0, tzinfo=None, fold=0)
 
         #The isntant of measurement for the National system is stored in the file name.
-        initialSeconds = 10*int(firstMeasurementFile[17]) + int(firstMeasurementFile[18])
-        initialMinutes = 10*int(firstMeasurementFile[14]) + int(firstMeasurementFile[15])
-        initialHours = 10*int(firstMeasurementFile[11]) + int(firstMeasurementFile[12])
-        initialDay = 10*int(firstMeasurementFile[8]) + int(firstMeasurementFile[9])
-        initialMonth = 10*int(firstMeasurementFile[5]) + int(firstMeasurementFile[6])
-        initialYear = 2000+10*int(firstMeasurementFile[2]) + int(firstMeasurementFile[3])
+        initialSeconds = 10*int(firstMeasurementFile[-6]) + int(firstMeasurementFile[-5])
+        initialMinutes = 10*int(firstMeasurementFile[-9]) + int(firstMeasurementFile[-8])
+        initialHours = 10*int(firstMeasurementFile[-12]) + int(firstMeasurementFile[-11])
+        initialDay = 10*int(firstMeasurementFile[-15]) + int(firstMeasurementFile[-14])
+        initialMonth = 10*int(firstMeasurementFile[-18]) + int(firstMeasurementFile[-17])
+        initialYear = 2000+10*int(firstMeasurementFile[-21]) + int(firstMeasurementFile[-20])
         initialTime = datetime(year=initialYear, month=initialMonth, day=initialDay,
                                 hour=initialHours, minute=initialMinutes, second=initialSeconds, microsecond=0, tzinfo=None, fold=0)
     # Compute the difference in time
@@ -291,7 +291,7 @@ def getSamplingFrequency_uEMMARM(folderPath, files, numberOfSamplingPoints):
     with open(folderPath+"/"+files[:-4]+".txt") as f:
         lines = f.readlines()
     #Extract the duration:
-    sessionDuration = int(lines[13]) #Use 10 or 13, depending on the uEMMARM system
+    sessionDuration = int(lines[13]) #Use 10 for uEMMARM v0.2, and 13 for uEMMARM v0.1
     samplingFrequency = numberOfSamplingPoints/sessionDuration
     return samplingFrequency #Returns a np.array
 
@@ -575,7 +575,7 @@ def averagedPeakPickingMethod(PSD, intervalForAveragingInHz, plot={'typeForPeakP
     else:
         return fig, averagedFrequency, ksi_hp, PSDAveragedFrequency, PSDAveragedPeakIndex, yMaxPeakIndex
 
-def solveTranscendentalEquation(initialGuess, vibrationFrequency, linearMass, freeLength, tipMass, typeOfEquation="Cantilever"):
+def solveCantileverTranscendentalEquation(initialGuess, vibrationFrequency, linearMass, freeLength, tipMass):
     """
     This method numerically solves the transcendental equation of a cantilever beam under free vibration with a concentrated mass at its free tip, outputing the flexural stiffness (EI) of the beam
 
@@ -591,9 +591,6 @@ def solveTranscendentalEquation(initialGuess, vibrationFrequency, linearMass, fr
         Free length of the cantilever beam, in meters
     tipMass: float
         Total mass at the free tip of the cantilever beam, in kg
-    typeOfEquation: optional, str
-        Defines which beam model is to be considered: cantilever or simply supported. 
-        Available options are: "Cantilever" (default), "Simply supported"
 
     Returns
     -------    
@@ -607,42 +604,15 @@ def solveTranscendentalEquation(initialGuess, vibrationFrequency, linearMass, fr
     mL = linearMass
     mT = tipMass
 
-    if typeOfEquation == "Cantilever":
-        #Define the transcendental function structure
-        f = lambda EI: ((((w**2)*mL/EI)**(1/4))**3)*(np.cosh((((w**2)*mL/EI)**(1/4))*L)*np.cos((((w**2)*mL/EI)**(1/4))*L)+1)+(w*w*mT/EI)*(np.cos((((w**2)*mL/EI)**(1/4))*L)*np.sinh((((w**2)*mL/EI)**(1/4))*L)-np.cosh((((w**2)*mL/EI)**(1/4))*L)*np.sin((((w**2)*mL/EI)**(1/4))*L))
-        #Solve the transcendental equation
-        flexuralStiffness = fsolve(f, initialGuess)
-    elif typeOfEquation == "Simply supported":
-        #Equations from https://doi.org/10.1016/j.cemconres.2010.02.014
-        #Each element inside the big brackets in Eq. 4 of the article is identified as Cn (C1, C2, etc, in their order of appearance)
-        #Then they are all summed in the end
-        #Define the transcendental function structure
-        k=1e99
-        def f (EI):
-            a=(((w**2)*mL/EI)**(1/4))
-            mp=mT/2
-            C1=EI*(a**3)*np.sin((a*L/2)**2)*(w**2)*mp
-            C2=2*np.cosh(a*L/2)*k*(w**2)*mp*np.sin(a*L/2)
-            C3=np.cosh((a*L/2)**2)*(w**2)*mp*EI*(a**3)
-            C4=2*(EI**2)*(a**6)*np.sin(a*L/2)*np.cosh(a*L/2)
-            C5=EI*(a**3)*np.sinh((a*L/2)**1)*(w**2)*mp
-            C6=2*np.cos(a*L/2)*(EI**2)*(a**6)*np.sinh(a*L/2)
-            C7=4*np.cos(a*L/2)*k*EI*(a**3)*np.cosh(a*L/2)
-            C8=np.cos((a*L/2)**2)*(w**2)*mp*EI*(a**3)
-            C9=2*np.cos(a*L/2)*(w**2)*mp*EI*(a**3)*np.cosh(a*L/2)
-            C10=2*np.cos(a*L/2)*k*(w**2)*mp*np.sinh(a*L/2)
+    #Define the transcendental function structure
+    f = lambda EI: ((((w**2)*mL/EI)**(1/4))**3)*(np.cosh((((w**2)*mL/EI)**(1/4))*L)*np.cos((((w**2)*mL/EI)**(1/4))*L)+1)+(w*w*mT/EI)*(np.cos((((w**2)*mL/EI)**(1/4))*L)*np.sinh((((w**2)*mL/EI)**(1/4))*L)-np.cosh((((w**2)*mL/EI)**(1/4))*L)*np.sin((((w**2)*mL/EI)**(1/4))*L))
 
-            fullEquation = (-1/(2*k))*(C1+C2+C3+C4-C5+C6-C7+C8+C9-C10) #This equation considers the flexibility of the supports
-            #fullEquation = (1/2)*(C2-C7-C10) #This assumes an infinity flexibility
-            return fullEquation
-       
-        
-        #Solve the transcendental equation
-        flexuralStiffness = fsolve(f, initialGuess)
+    #Solve the transcendental equation
+    flexuralStiffness = fsolve(f, initialGuess)
 
     return flexuralStiffness
 
-def findTubeFlexuralStiffnessFromDormantAge(initialGuessFlexuralStiffness, freeCantileverLength, massAtTip, tubeFullMassFreeLength, tubeFullLinearMass, ages, vibrationFrequencies, dormantAgeThreshold, typeOfEquation="Cantilever"):
+def findTubeFlexuralStiffnessFromDormantAge(initialGuessFlexuralStiffness, freeCantileverLength, massAtTip, tubeFullMassFreeLength, tubeFullLinearMass, ages, vibrationFrequencies, dormantAgeThreshold):
     """
     This method finds what is the Flexural Stiffness of the tube so that the E-modulus at the dormant age be set equal to zero
 
@@ -666,11 +636,8 @@ def findTubeFlexuralStiffnessFromDormantAge(initialGuessFlexuralStiffness, freeC
         #Take the average frequency, which will be used in further computations to set the material modulus during dormant age equal to zero
         averageDormantFrequency = np.mean(np.array(dormantFrequencies))
         #Make an initial guess on the composite flexural stiffness
-        if typeOfEquation == "Cantilever":
-            compositeFlexuralStiffnessInitialGuess = ((freeCantileverLength)**3)*(massAtTip+0.24*tubeFullMassFreeLength)*((averageDormantFrequency*2*np.pi)**2)/(3)
-        else:
-            compositeFlexuralStiffnessInitialGuess = ((freeCantileverLength)**3)*(massAtTip+0.49*tubeFullMassFreeLength)*((averageDormantFrequency*np.pi)**2)/(12)
-        adjustedTubeFlexuralStiffness = solveTranscendentalEquation(compositeFlexuralStiffnessInitialGuess, averageDormantFrequency, tubeFullLinearMass, freeCantileverLength, massAtTip, typeOfEquation=typeOfEquation)
+        compositeFlexuralStiffnessInitialGuess = ((freeCantileverLength)**3)*(massAtTip+0.24*tubeFullMassFreeLength)*((averageDormantFrequency*2*np.pi)**2)/(3) 
+        adjustedTubeFlexuralStiffness = solveCantileverTranscendentalEquation(compositeFlexuralStiffnessInitialGuess, averageDormantFrequency, tubeFullLinearMass, freeCantileverLength, massAtTip)
 
     return adjustedTubeFlexuralStiffness
 
@@ -713,7 +680,7 @@ def generateHeatMap(heatMapFilePath, saveFilePath, unitForAgeInPlot):
     with np.load(heatMapFilePath) as heatMapNPZ:
         heatMap=heatMapNPZ['arr_0']
     fig, ax = plt.subplots(figsize=(5,4))
-
+    plt.close(fig)
     ax.set_xscale('log')
     im=ax.pcolormesh(heatMap[0,1:]/ageConversionFactor,heatMap[1:,0],heatMap[1:,1:], norm=LogNorm())
     ax.set_xlim([0.01,heatMap[0,-1]/ageConversionFactor])
@@ -722,4 +689,4 @@ def generateHeatMap(heatMapFilePath, saveFilePath, unitForAgeInPlot):
     ax.set_ylabel("Frequency (Hz)")
     plt.show()
 
-    plt.savefig(saveFilePath)
+    plt.savefig(saveFilePath, format='svg')

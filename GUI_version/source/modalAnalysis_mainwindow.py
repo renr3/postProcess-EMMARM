@@ -477,17 +477,17 @@ class modalAnalysis_mainWindow(QtWidgets.QMainWindow):
         #If no modal analysis was set to be done, then the exporting will do nothing and the user might get confused
         exportingDone = False
         if self.modalIdentificationMethodToPerform['peak-picking']==True:
-            np.savetxt(saveFilePrefix+'_Frequency_PP.txt', np.vstack((self.agesOfMeasurementOriginal, self.FPP)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(DAYS)\tFREQUENCY(HZ)")
+            np.savetxt(saveFilePrefix+'_Frequency_PP.txt', np.vstack((self.agesOfMeasurementOriginal, self.FPP)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(SECONDS)\tFREQUENCY(HZ)")
             exportingDone = True
         if self.modalIdentificationMethodToPerform['BFD']==True:
-            np.savetxt(saveFilePrefix+'_Frequency_BFD.txt', np.vstack((self.agesOfMeasurementOriginal, self.FBFD)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(DAYS)\tFREQUENCY(HZ)")
+            np.savetxt(saveFilePrefix+'_Frequency_BFD.txt', np.vstack((self.agesOfMeasurementOriginal, self.FBFD)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(SECONDS)\tFREQUENCY(HZ)")
             exportingDone = True
         if self.modalIdentificationMethodToPerform['EFDD']==True:
-            np.savetxt(saveFilePrefix+'_Frequency_EFFD.txt', np.vstack((self.agesOfMeasurementOriginal, self.FEFDD)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(DAYS)\tFREQUENCY(HZ)")
+            np.savetxt(saveFilePrefix+'_Frequency_EFFD.txt', np.vstack((self.agesOfMeasurementOriginal, self.FEFDD)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(SECONDS)\tFREQUENCY(HZ)")
             exportingDone = True
         if self.modalIdentificationMethodToPerform['SSI-COV']==True:
-            np.savetxt(saveFilePrefix+'_Frequency_SSI.txt', np.vstack((self.agesOfMeasurementOriginal, self.FSSI_CLUSTER.T)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(DAYS)\tFREQUENCIES(Hz)")
-            np.savetxt(saveFilePrefix+'_numPoles_SSI.txt', np.vstack((self.agesOfMeasurementOriginal, self.numStablePoles_CLUSTER.T)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(DAYS)\tNUMBER POLES(counts)")
+            np.savetxt(saveFilePrefix+'_Frequency_SSI.txt', np.vstack((self.agesOfMeasurementOriginal, self.FSSI_CLUSTER.T)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(SECONDS)\tFREQUENCIES(Hz)")
+            np.savetxt(saveFilePrefix+'_numPoles_SSI.txt', np.vstack((self.agesOfMeasurementOriginal, self.numStablePoles_CLUSTER.T)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(SECONDS)\tNUMBER POLES(counts)")
             exportingDone = True
         #Log message to inform status of exporting
         if exportingDone is False:
@@ -518,16 +518,16 @@ class modalAnalysis_mainWindow(QtWidgets.QMainWindow):
         #If no modal analysis was set to be done, then the exporting will do nothing and the user might get confused
         exportingDone = False
         if self.modalIdentificationMethodToPerform['peak-picking']==True:
-            np.savetxt(saveFilePrefix+'_Damping_PP.txt', np.vstack((self.agesOfMeasurementOriginal, self.ZPP_HP)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(DAYS)\tDAMPING(%)")
+            np.savetxt(saveFilePrefix+'_Damping_PP.txt', np.vstack((self.agesOfMeasurementOriginal, self.ZPP_HP)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(SECONDS)\tDAMPING(%)")
             exportingDone = True
         if self.modalIdentificationMethodToPerform['BFD']==True:
-            np.savetxt(saveFilePrefix+'_Damping_BFD.txt', np.vstack((self.agesOfMeasurementOriginal, self.ZBFD_FT)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(DAYS)\tDAMPING(%)")
+            np.savetxt(saveFilePrefix+'_Damping_BFD.txt', np.vstack((self.agesOfMeasurementOriginal, self.ZBFD_FT)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(SECONDS)\tDAMPING(%)")
             exportingDone = True
         if self.modalIdentificationMethodToPerform['EFDD']==True:
-            np.savetxt(saveFilePrefix+'_Damping_EFFD.txt', np.vstack((self.agesOfMeasurementOriginal, self.ZEFDD)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(DAYS)\tDAMPING(%)")
+            np.savetxt(saveFilePrefix+'_Damping_EFFD.txt', np.vstack((self.agesOfMeasurementOriginal, self.ZEFDD)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(SECONDS)\tDAMPING(%)")
             exportingDone = True
         if self.modalIdentificationMethodToPerform['SSI-COV']==True:
-            np.savetxt(saveFilePrefix+'_Damping_SSI.txt', np.vstack((self.agesOfMeasurementOriginal, self.ZSSI_CLUSTER.T)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(DAYS)\tDAMPING(%)")
+            np.savetxt(saveFilePrefix+'_Damping_SSI.txt', np.vstack((self.agesOfMeasurementOriginal, self.ZSSI_CLUSTER.T)).T, delimiter='\t', fmt='%f', header="=======================\nAGE(SECONDS)\tDAMPING(%)")
             exportingDone = True
         #Log message to inform status of exporting
         if exportingDone is False:
@@ -829,6 +829,9 @@ class modalAnalysis_mainWindow(QtWidgets.QMainWindow):
             self.tol[1][0] = self.try_float(self.lineEdit_stabTolDamping_allowedVariation_SSI.text())
             self.tol[1][1] = self.try_float(self.lineEdit_stabTolDamping_lowerBound_SSI.text())
             self.tol[1][2] = self.try_float(self.lineEdit_stabTolDamping_upperBound_SSI.text())
+            self.tol[2][0] = 0.10
+            self.tol[2][1] = 0
+            self.tol[2][2] = 1
             print("SSI-COV is checked") if debugActivatedForDevelopment else None
         else:
             #If the checkBox is unchecked, then we need to update the self.modalIdentificationMethodToPerform dict
@@ -1625,18 +1628,18 @@ class Worker(QRunnable):
                 #Generate result files with the modal identification
                 '''
                 if self.analysisObject.modalIdentificationMethodToPerform['peak-picking']==True:
-                    np.savetxt(resultFilePreffix+'_Frequency_PP.txt', np.vstack((agesOfMeasurementOriginal, FPP)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFREQUENCY(HZ)")
-                    np.savetxt(resultFilePreffix+'_Damping_HP_PP.txt', np.vstack((agesOfMeasurementOriginal, ZPP_HP)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tHALF-POWER DAMPING RATIO(%)")
+                    np.savetxt(resultFilePreffix+'_Frequency_PP.txt', np.vstack((agesOfMeasurementOriginal, FPP)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(SECONDS)\tFREQUENCY(HZ)")
+                    np.savetxt(resultFilePreffix+'_Damping_HP_PP.txt', np.vstack((agesOfMeasurementOriginal, ZPP_HP)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(SECONDS)\tHALF-POWER DAMPING RATIO(%)")
                 if self.analysisObject.modalIdentificationMethodToPerform['BFD']==True:
-                    np.savetxt(resultFilePreffix+'_Frequency_BFD.txt', np.vstack((agesOfMeasurementOriginal, FBFD)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFREQUENCY(HZ)")
-                    np.savetxt(resultFilePreffix+'_Damping_FT_BFD.txt', np.vstack((agesOfMeasurementOriginal, ZBFD_FT)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFITTING DAMPING RATIO(%)")
+                    np.savetxt(resultFilePreffix+'_Frequency_BFD.txt', np.vstack((agesOfMeasurementOriginal, FBFD)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(SECONDS)\tFREQUENCY(HZ)")
+                    np.savetxt(resultFilePreffix+'_Damping_FT_BFD.txt', np.vstack((agesOfMeasurementOriginal, ZBFD_FT)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(SECONDS)\tFITTING DAMPING RATIO(%)")
                 if self.analysisObject.modalIdentificationMethodToPerform['EFDD']==True:
-                    np.savetxt(resultFilePreffix+'_Frequency_EFFD.txt', np.vstack((agesOfMeasurementOriginal, FEFDD)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFREQUENCY(HZ)")
-                    np.savetxt(resultFilePreffix+'_Damping_EFFD.txt', np.vstack((agesOfMeasurementOriginal, ZEFDD)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tDAMPING RATIO(%)")
+                    np.savetxt(resultFilePreffix+'_Frequency_EFFD.txt', np.vstack((agesOfMeasurementOriginal, FEFDD)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(SECONDS)\tFREQUENCY(HZ)")
+                    np.savetxt(resultFilePreffix+'_Damping_EFFD.txt', np.vstack((agesOfMeasurementOriginal, ZEFDD)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(SECONDS)\tDAMPING RATIO(%)")
                 if self.analysisObject.modalIdentificationMethodToPerform['SSI-COV']==True:
-                    np.savetxt(resultFilePreffix+'_Frequency_SSI.txt', np.vstack((agesOfMeasurementOriginal, FSSI_CLUSTER.T)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tFREQUENCIES(Hz)")
-                    np.savetxt(resultFilePreffix+'_Damping_SSI.txt', np.vstack((agesOfMeasurementOriginal, ZSSI_CLUSTER.T)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tDAMPING RATIOS(%)")
-                    np.savetxt(resultFilePreffix+'_numPoles_SSI.txt', np.vstack((agesOfMeasurementOriginal, numStablePoles_CLUSTER.T)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(DAYS)\tNUMBER POLES(counts)")  
+                    np.savetxt(resultFilePreffix+'_Frequency_SSI.txt', np.vstack((agesOfMeasurementOriginal, FSSI_CLUSTER.T)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(SECONDS)\tFREQUENCIES(Hz)")
+                    np.savetxt(resultFilePreffix+'_Damping_SSI.txt', np.vstack((agesOfMeasurementOriginal, ZSSI_CLUSTER.T)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(SECONDS)\tDAMPING RATIOS(%)")
+                    np.savetxt(resultFilePreffix+'_numPoles_SSI.txt', np.vstack((agesOfMeasurementOriginal, numStablePoles_CLUSTER.T)).T, delimiter='\t', fmt='%f', header=headerResultFiles+"=======================\nAGE(SECONDS)\tNUMBER POLES(counts)")  
                 '''
                 '''
                 if  heatMap_BatchAnalysis['save'] == True:

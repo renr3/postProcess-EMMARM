@@ -483,7 +483,7 @@ class Worker(QRunnable):
             self.analysisObject.tubeModulusInitialGuess = (self.analysisObject.freeCantileverLengthEmptyTube**3)*(self.analysisObject.massAtTipEmptyTube+0.24*self.analysisObject.tubeEmptyMassFreeLength)*((self.analysisObject.frequencyEmptyTube*2*np.pi)**2)/(3*self.analysisObject.tubeMomentOfInertia) #Modulus given in Pa
             self.signals.updateProgressBar.emit([5,'percentage'])
             #Estimate the E-modulus of the mould tube from the transcental equation
-            self.analysisObject.tubeFlexuralStiffness = auxEMMARM.solveCantileverTranscendentalEquation(self.analysisObject.tubeModulusInitialGuess*self.analysisObject.tubeMomentOfInertia, self.analysisObject.frequencyEmptyTube, self.analysisObject.tubeEmptyLinearMass, self.analysisObject.freeCantileverLengthEmptyTube, self.analysisObject.massAtTipEmptyTube)
+            self.analysisObject.tubeFlexuralStiffness = auxEMMARM.solveTranscendentalEquation(self.analysisObject.tubeModulusInitialGuess*self.analysisObject.tubeMomentOfInertia, self.analysisObject.frequencyEmptyTube, self.analysisObject.tubeEmptyLinearMass, self.analysisObject.freeCantileverLengthEmptyTube, self.analysisObject.massAtTipEmptyTube)
             self.analysisObject.tubeModulus = self.analysisObject.tubeFlexuralStiffness/self.analysisObject.tubeMomentOfInertia
             #Properties of filled tube
             self.analysisObject.tubeFullLinearMass = self.analysisObject.massOfFilledTube/self.analysisObject.totalLengthOfTube
@@ -520,7 +520,7 @@ class Worker(QRunnable):
                         #Estimate an initial guess based on a simplified equation
                         compositeFlexuralStiffnessInitialGuess = ((self.analysisObject.freeCantileverLength)**3)*(self.analysisObject.massAtTip+0.24*self.analysisObject.tubeFullMassFreeLength)*((frequency*2*np.pi)**2)/(3) #Modulus given in Pa
                         self.signals.updateProgressBar.emit([int(lastProgress+currentProgressStep/2),'percentage'])
-                        compositeFlexuralStiffness = auxEMMARM.solveCantileverTranscendentalEquation(compositeFlexuralStiffnessInitialGuess, frequency, self.analysisObject.tubeFullLinearMass, self.analysisObject.freeCantileverLength, self.analysisObject.massAtTip)
+                        compositeFlexuralStiffness = auxEMMARM.solveTranscendentalEquation(compositeFlexuralStiffnessInitialGuess, frequency, self.analysisObject.tubeFullLinearMass, self.analysisObject.freeCantileverLength, self.analysisObject.massAtTip)
                         self.analysisObject.modulusElasticity[i] = (compositeFlexuralStiffness-self.analysisObject.tubeFlexuralStiffness)/self.analysisObject.materialMomentOfInertia
                         firstPoint = False
                     else:
@@ -528,7 +528,7 @@ class Worker(QRunnable):
                         #Estimate an initial guess based on a simplified equation
                         compositeFlexuralStiffnessInitialGuess = ((self.analysisObject.freeCantileverLength)**3)*(self.analysisObject.massAtTip+0.24*self.analysisObject.tubeFullMassFreeLength)*((frequency*2*np.pi)**2)/(3) #Modulus given in Pa
                         self.signals.updateProgressBar.emit([int(lastProgress+currentProgressStep/2),'percentage'])
-                        compositeFlexuralStiffness = auxEMMARM.solveCantileverTranscendentalEquation(compositeFlexuralStiffnessInitialGuess, frequency, self.analysisObject.tubeFullLinearMass, self.analysisObject.freeCantileverLength, self.analysisObject.massAtTip)
+                        compositeFlexuralStiffness = auxEMMARM.solveTranscendentalEquation(compositeFlexuralStiffnessInitialGuess, frequency, self.analysisObject.tubeFullLinearMass, self.analysisObject.freeCantileverLength, self.analysisObject.massAtTip)
                         self.analysisObject.modulusElasticity[i] = (compositeFlexuralStiffness-self.analysisObject.tubeFlexuralStiffness)/self.analysisObject.materialMomentOfInertia
                 else:
                     self.analysisObject.modulusElasticity[i] = np.nan
